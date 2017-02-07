@@ -148,7 +148,7 @@ public class GettingBlameCommit extends CallingAPI {
 
 
             //            calling the graphql API for getting blame information
-//                      callingGraphqlApi(repoLocation[i],commitHash);
+                      callingGraphqlApi(repoLocation[i],commitHash);
 
         }
 
@@ -396,7 +396,7 @@ public class GettingBlameCommit extends CallingAPI {
     //    
     //    
     //            // passing the access token
-    //            httpPost.addHeader("Authorization","Bearer 8764c7e4547eb4c6d2609e0f9607c592e72b61c8");
+    //            h
     //    //        httpPost.addHeader("content-type","application/x-www-form-urlencoded");
     //            httpPost.addHeader("Accept","application/json");
     //    
@@ -471,7 +471,7 @@ public class GettingBlameCommit extends CallingAPI {
 //        client= HttpClients.createDefault();
 //        HttpPost httpPost= new HttpPost("https://api.github.com/graphql");
 //
-//        httpPost.addHeader("Authorization","Bearer 8764c7e4547eb4c6d2609e0f9607c592e72b61c8");
+//        httpPost.addHeader("Authorization","Bearer "+getToken());
 //                httpPost.addHeader("Accept","application/json");
 //
 //
@@ -479,7 +479,7 @@ public class GettingBlameCommit extends CallingAPI {
 //        
 //        String temp="{repository(owner:\\\"wso2-extensions\\\",name:\\\"identity-inbound-auth-oauth\\\"){object(expression:\\\"83253ce50f189db30c54f13afa5d99021e2d7ece\\\"){ ... on Commit{blame(path:\\\"components/org.wso2.carbon.identity.oauth.endpoint/src/main/java/org/wso2/carbon/identity/oauth/endpoint/authz/OAuth2AuthzEndpoint.java\\\"){ranges{startingLine endingLine age commit{message url history(first: 2) { edges { node {  message url } } } author { name email } } } } } } } }";
 ////        String temp="{repository(owner:\\\"wso2\\\",name:\\\"product-is\\\"){description}}";
-//        
+        
 //
 //
 //        try {
