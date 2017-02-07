@@ -148,7 +148,7 @@ public class GettingBlameCommit extends CallingAPI {
 
 
             //            calling the graphql API for getting blame information
-                      callingGraphqlApi(repoLocation[i],commitHash);
+            callingGraphqlApi(repoLocation[i],commitHash);
 
         }
 
@@ -288,68 +288,68 @@ public class GettingBlameCommit extends CallingAPI {
 
     //============================= calling the graphql of GitHub through running curl command ==========================================
 
-        public void callingGraphqlApi(String repoLocation,String commitHash){
-    
-            String owner= StringUtils.substringBefore(repoLocation,"/");
-            String repositoryName= StringUtils.substringAfter(repoLocation,"/");
-    
-    
-    
-    
-            // url for graphql API
-            String apiUrl= "https://api.github.com/graphql";
-    
-    
-            //        using an iterator for looping through the arraylists of filenames
-    
-    
-            Iterator iteratorForFileNames= fileNames.iterator();
-            while(iteratorForFileNames.hasNext()){
-    
-                String fileName= (String)iteratorForFileNames.next();
-    
-    
-                String[] curlCommand = {"curl", "-H" ,"Authorization: Bearer "+getToken(),"-H","Accept:application/json","-X", "POST", "-d", "{\"query\": \"query { repository(owner: \\\""+owner+"\\\", name: \\\""+repositoryName+"\\\") { object(expression:\\\""+commitHash+"\\\") { ... on Commit { blame(path: \\\""+fileName+"\\\") { ranges { startingLine endingLine age commit { history(first: 2) { edges { node { message url } } } author { name email } } } } } } } }\"}" , apiUrl};
-                
-    //            creating a processBuilder instance for running the curl command with the given set of arguments
-                ProcessBuilder processBuilder= new ProcessBuilder(curlCommand);
-                Process p;
-                
-                
-                try{
-                    p= processBuilder.start(); // staring new subprocess with uses the default working directory and environment variables
-                    BufferedReader bufferedReader= new BufferedReader(new InputStreamReader(p.getInputStream()));   //obtaining the output of the subprocess through the Parent Process inputStream
-                    StringBuilder stringBuilder= new StringBuilder();
-                    String line=null;
-                    while((line=bufferedReader.readLine())!= null){
-                        stringBuilder.append(line);
-                        stringBuilder.append(System.getProperty("line.separator"));
-                        
-                        
-                        
-                    }
-                    System.out.println(stringBuilder.toString());
-                    
-                }
-                catch(IOException e){
-                    e.printStackTrace();
-                }
-                
-                
-                
-               
-                
-               
-                
-                
-    
-    
-    
-            }
-    
-    //        String[] command = {"curl", "-H" ,"Authorization: Bearer"+getToken(),"-H","Accept:application/json","-X", "POST", "-d", "{\"query\": \"query { repository(owner: \\\"wso2-extensions\\\", name: \\\"identity-inbound-auth-oauth\\\") { object(expression:\\\"83253ce50f189db30c54f13afa5d99021e2d7ece\\\") { ... on Commit { blame(path: \\\"components/org.wso2.carbon.identity.oauth.endpoint/src/main/java/org/wso2/carbon/identity/oauth/endpoint/authz/OAuth2AuthzEndpoint.java\\\") { ranges { startingLine endingLine age commit { message url history(first: 2) { edges { node { message url } } } author { name email } } } } } } } }\"}" , apiUrl};
-    
-        }
+    //        public void callingGraphqlApi(String repoLocation,String commitHash){
+    //    
+    //            String owner= StringUtils.substringBefore(repoLocation,"/");
+    //            String repositoryName= StringUtils.substringAfter(repoLocation,"/");
+    //    
+    //    
+    //    
+    //    
+    //            // url for graphql API
+    //            String apiUrl= "https://api.github.com/graphql";
+    //    
+    //    
+    //            //        using an iterator for looping through the arraylists of filenames
+    //    
+    //    
+    //            Iterator iteratorForFileNames= fileNames.iterator();
+    //            while(iteratorForFileNames.hasNext()){
+    //    
+    //                String fileName= (String)iteratorForFileNames.next();
+    //    
+    //    
+    //                String[] curlCommand = {"curl", "-H" ,"Authorization: Bearer "+getToken(),"-H","Accept:application/json","-X", "POST", "-d", "{\"query\": \"query { repository(owner: \\\""+owner+"\\\", name: \\\""+repositoryName+"\\\") { object(expression:\\\""+commitHash+"\\\") { ... on Commit { blame(path: \\\""+fileName+"\\\") { ranges { startingLine endingLine age commit { history(first: 2) { edges { node { message url } } } author { name email } } } } } } } }\"}" , apiUrl};
+    //                
+    //    //            creating a processBuilder instance for running the curl command with the given set of arguments
+    //                ProcessBuilder processBuilder= new ProcessBuilder(curlCommand);
+    //                Process p;
+    //                
+    //                
+    //                try{
+    //                    p= processBuilder.start(); // staring new subprocess with uses the default working directory and environment variables
+    //                    BufferedReader bufferedReader= new BufferedReader(new InputStreamReader(p.getInputStream()));   //obtaining the output of the subprocess through the Parent Process inputStream
+    //                    StringBuilder stringBuilder= new StringBuilder();
+    //                    String line=null;
+    //                    while((line=bufferedReader.readLine())!= null){
+    //                        stringBuilder.append(line);
+    //                        stringBuilder.append(System.getProperty("line.separator"));
+    //                        
+    //                        
+    //                        
+    //                    }
+    //                    System.out.println(stringBuilder.toString());
+    //                    
+    //                }
+    //                catch(IOException e){
+    //                    e.printStackTrace();
+    //                }
+    //                
+    //                
+    //                
+    //               
+    //                
+    //               
+    //                
+    //                
+    //    
+    //    
+    //    
+    //            }
+    //    
+    //    //        String[] command = {"curl", "-H" ,"Authorization: Bearer"+getToken(),"-H","Accept:application/json","-X", "POST", "-d", "{\"query\": \"query { repository(owner: \\\"wso2-extensions\\\", name: \\\"identity-inbound-auth-oauth\\\") { object(expression:\\\"83253ce50f189db30c54f13afa5d99021e2d7ece\\\") { ... on Commit { blame(path: \\\"components/org.wso2.carbon.identity.oauth.endpoint/src/main/java/org/wso2/carbon/identity/oauth/endpoint/authz/OAuth2AuthzEndpoint.java\\\") { ranges { startingLine endingLine age commit { message url history(first: 2) { edges { node { message url } } } author { name email } } } } } } } }\"}" , apiUrl};
+    //    
+    //        }
 
 
 
@@ -464,67 +464,82 @@ public class GettingBlameCommit extends CallingAPI {
 
     //============================= calling the graphql of GitHub through apache httpClient ==========================================
 
-//    public void callingGraph(){
-//        CloseableHttpClient client= null;
-//        CloseableHttpResponse response= null;
-//
-//        client= HttpClients.createDefault();
-//        HttpPost httpPost= new HttpPost("https://api.github.com/graphql");
-//
-//        httpPost.addHeader("Authorization","Bearer "+getToken());
-//                httpPost.addHeader("Accept","application/json");
-//
-//
-//        //        String temp="{viewer {email login }}";
-//        
-//        String temp="{repository(owner:\\\"wso2-extensions\\\",name:\\\"identity-inbound-auth-oauth\\\"){object(expression:\\\"83253ce50f189db30c54f13afa5d99021e2d7ece\\\"){ ... on Commit{blame(path:\\\"components/org.wso2.carbon.identity.oauth.endpoint/src/main/java/org/wso2/carbon/identity/oauth/endpoint/authz/OAuth2AuthzEndpoint.java\\\"){ranges{startingLine endingLine age commit{message url history(first: 2) { edges { node {  message url } } } author { name email } } } } } } } }";
-////        String temp="{repository(owner:\\\"wso2\\\",name:\\\"product-is\\\"){description}}";
-        
-//
-//
-//        try {
-//
-//            StringEntity entity= new StringEntity("{\"query\":\"query "+temp+"\"}");
-//            
-//
-//            httpPost.setEntity(entity);
-//            response= client.execute(httpPost);
-//
-//        }
-//       
-//        catch(UnsupportedEncodingException e){
-//            e.printStackTrace();
-//        }
-//        catch(ClientProtocolException e){
-//            e.printStackTrace();
-//        }
-//        catch(IOException e){
-//            e.printStackTrace();
-//        }
-//
-//        try{
-//            BufferedReader reader= new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-//            String line= null;
-//            StringBuilder builder= new StringBuilder();
-//            while((line=reader.readLine())!= null){
-//
-//                builder.append(line);
-//
-//            }
-//            System.out.println(builder.toString());
-//        }
-//        catch(Exception e){
-//            e.printStackTrace();
-//        }
-//
-//       
-//
-//
-//
-//
-//
-//
-//    }
+    public void callingGraphqlApi(String repoLocation, String commitHash){
+
+
+        String owner= StringUtils.substringBefore(repoLocation,"/");
+        String repositoryName= StringUtils.substringAfter(repoLocation,"/");
+
+
+
+        CloseableHttpClient client= null;
+        CloseableHttpResponse response= null;
+
+        client= HttpClients.createDefault();
+        HttpPost httpPost= new HttpPost("https://api.github.com/graphql");
+
+        httpPost.addHeader("Authorization","Bearer "+getToken());
+        httpPost.addHeader("Accept","application/json");
+
+
+        //      using an iterator for looping through the arraylists of filenames
+        Iterator iteratorForFileNames = fileNames.iterator();
+
+        while (iteratorForFileNames.hasNext()){
+            String fileName= (String)iteratorForFileNames.next();
+
+
+
+            //        String temp="{viewer {email login }}";
+
+            String temp="{repository(owner:\\\""+owner+"\\\",name:\\\""+repositoryName+"\\\"){object(expression:\\\""+commitHash+"\\\"){ ... on Commit{blame(path:\\\""+fileName+"\\\"){ranges{startingLine endingLine age commit{history(first: 2) { edges { node {  message url } } } author { name email } } } } } } } }";
+            //        String temp="{repository(owner:\\\"wso2\\\",name:\\\"product-is\\\"){description}}";
+
+
+
+            try {
+
+                StringEntity entity= new StringEntity("{\"query\":\"query "+temp+"\"}");
+
+
+                httpPost.setEntity(entity);
+                response= client.execute(httpPost);
+
+            }
+
+            catch(UnsupportedEncodingException e){
+                e.printStackTrace();
+            }
+            catch(ClientProtocolException e){
+                e.printStackTrace();
+            }
+            catch(IOException e){
+                e.printStackTrace();
+            }
+
+            try{
+                BufferedReader reader= new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+                String line= null;
+                StringBuilder builder= new StringBuilder();
+                while((line=reader.readLine())!= null){
+
+                    builder.append(line);
+
+                }
+                System.out.println(builder.toString());
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
+
+
+
+
+        }
+
+
+
+    }
 
 
 }
