@@ -22,6 +22,7 @@ package kasun.test.testingMaven;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -466,7 +467,7 @@ public class GettingBlameCommit extends CallingAPI {
 
     public void callingGraphqlApi(String repoLocation, String commitHash){
 
-
+        // filtering the owner and the repository name from the repoLocation
         String owner= StringUtils.substringBefore(repoLocation,"/");
         String repositoryName= StringUtils.substringAfter(repoLocation,"/");
 
@@ -518,15 +519,27 @@ public class GettingBlameCommit extends CallingAPI {
             }
 
             try{
-                BufferedReader reader= new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+                BufferedReader bufferedReader= new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
                 String line= null;
-                StringBuilder builder= new StringBuilder();
-                while((line=reader.readLine())!= null){
+                StringBuilder stringBuilder= new StringBuilder();
+                while((line=bufferedReader.readLine())!= null){
 
-                    builder.append(line);
+                    stringBuilder.append(line);
 
                 }
-                System.out.println(builder.toString());
+
+                // saving the output received to a file located in the same repo directory under the same owner of the repo
+                String saveLocation= repoLocation+"/FileChanged/"+commitHash+"/"+fileName+"blame.json";
+                File fileLocation= new File(location+saveLocation);
+                fileLocation.getParentFile().mkdirs();      //creating directories according to the file name given
+                BufferedWriter bufferedWritter= new BufferedWriter(new FileWriter(fileLocation));
+                bufferedWritter.write(stringBuilder.toString());
+                
+                
+
+
+
+                System.out.println(stringBuilder.toString());
             }
             catch(Exception e){
                 e.printStackTrace();
