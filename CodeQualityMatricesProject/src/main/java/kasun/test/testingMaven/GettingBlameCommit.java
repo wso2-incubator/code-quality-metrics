@@ -505,32 +505,32 @@ public class GettingBlameCommit extends CallingAPI {
             //        String temp="{viewer {email login }}";
             //        String temp="{repository(owner:\\\"wso2\\\",name:\\\"product-is\\\"){description}}";
 
-            String graphqlQuery=null;
-            JSONObject jsonObject= null;
+//            String graphqlQuery=null;
+            JSONObject graphqlApiJsonObject= null;
             
             if(callingToGetBlameForSecondTime == false){
 
                 //query for calling the graphql for getting the blame of the merge commit that resides in PMT API output
-                graphqlQuery="{repository(owner:\\\""+owner+"\\\",name:\\\""+repositoryName+"\\\"){object(expression:\\\""+commitHash+"\\\"){ ... on Commit{blame(path:\\\""+fileName+"\\\"){ranges{startingLine endingLine age commit{history(first: 2) { edges { node {  message url } } } author { name email } } } } } } } }";
+//                graphqlQuery="{repository(owner:\\\""+owner+"\\\",name:\\\""+repositoryName+"\\\"){object(expression:\\\""+commitHash+"\\\"){ ... on Commit{blame(path:\\\""+fileName+"\\\"){ranges{startingLine endingLine age commit{history(first: 2) { edges { node {  message url } } } author { name email } } } } } } } }";
                 
-//                jsonObject= new JSONObject();
-//                jsonObject.put("query","{repository(owner:\""+owner+"\",name:\""+repositoryName+"\"){object(expression:\""+commitHash+"\"){ ... on Commit{blame(path:\""+fileName+"\"){ranges{startingLine endingLine age commit{history(first: 2) { edges { node {  message url } } } author { name email } } } } } } } }");
+                graphqlApiJsonObject= new JSONObject();
+                graphqlApiJsonObject.put("query","{repository(owner:\""+owner+"\",name:\""+repositoryName+"\"){object(expression:\""+commitHash+"\"){ ... on Commit{blame(path:\""+fileName+"\"){ranges{startingLine endingLine age commit{history(first: 2) { edges { node {  message url } } } author { name email } } } } } } } }");
             }
             else{
 
                 //query for calling the graphql for obtaining the blame details of the parent commit that actually changed those line ranges
-                graphqlQuery="{repository(owner:\\\""+owner+"\\\",name:\\\""+repositoryName+"\\\"){object(expression:\\\""+commitHash+"\\\"){ ... on Commit{blame(path:\\\""+fileName+"\\\"){ranges{startingLine endingLine age commit{ url author { name email } } } } } } } }";
+//                graphqlQuery="{repository(owner:\\\""+owner+"\\\",name:\\\""+repositoryName+"\\\"){object(expression:\\\""+commitHash+"\\\"){ ... on Commit{blame(path:\\\""+fileName+"\\\"){ranges{startingLine endingLine age commit{ url author { name email } } } } } } } }";
                 
-//                jsonObject = new JSONObject();
-//                jsonObject.put("query", "{repository(owner:\""+owner+"\",name:\""+repositoryName+"\"){object(expression:\""+commitHash+"\"){ ... on Commit{blame(path:\""+fileName+"\"){ranges{startingLine endingLine age commit{ url author { name email } } } } } } } }");
+                graphqlApiJsonObject = new JSONObject();
+                graphqlApiJsonObject.put("query", "{repository(owner:\""+owner+"\",name:\""+repositoryName+"\"){object(expression:\""+commitHash+"\"){ ... on Commit{blame(path:\""+fileName+"\"){ranges{startingLine endingLine age commit{ url author { name email } } } } } } } }");
             }
 
 
 
             try {
 
-                StringEntity entity= new StringEntity("{\"query\":\"query "+graphqlQuery+"\"}");
-//                StringEntity entity= new StringEntity(jsonObject.toString());
+//                StringEntity entity= new StringEntity("{\"query\":\"query "+graphqlQuery+"\"}");
+                StringEntity entity= new StringEntity(graphqlApiJsonObject.toString());
 
 
                 httpPost.setEntity(entity);
