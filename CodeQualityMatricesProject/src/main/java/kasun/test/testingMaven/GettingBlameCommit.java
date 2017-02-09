@@ -140,17 +140,27 @@ public class GettingBlameCommit extends CallingAPI {
         //        for running through the repoName Array 
         for(int i =0; i< repoLocation.length;i++){
 
-            //clearing all the data in the current fileNames and lineRangesChanged arraylists for each repository
-            fileNames.clear();
-            lineRangesChanged.clear();
+            if(StringUtils.contains(repoLocation[i],"wso2/")){
+
+                //clearing all the data in the current fileNames and lineRangesChanged arraylists for each repository
+                fileNames.clear();
+                lineRangesChanged.clear();
 
 
-            callingToGetFilesChanged(repoLocation[i],commitHash); 
+                callingToGetFilesChanged(repoLocation[i],commitHash); 
 
 
-            //            calling the graphql API for getting blame information
-            callingGraphqlApi(repoLocation[i],commitHash);
+                //            calling the graphql API for getting blame information
+                try {
+                    callingGraphqlApi(repoLocation[i],commitHash,false);
 
+                    // reading the blame thus received from graphql API
+                    getBlameOfFile(repoLocation[i],commitHash);
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
         }
 
 
@@ -213,6 +223,8 @@ public class GettingBlameCommit extends CallingAPI {
 
 
             }
+
+            // in genaral the code comes here--------------------------------------------
             else if (checkObject instanceof JSONArray){
                 //                 more than one file has been changed by the relevant commit
                 JSONArray fileJsonArray= (JSONArray)checkObject;
@@ -252,13 +264,11 @@ public class GettingBlameCommit extends CallingAPI {
 
 
 
-                    System.out.println("done");
-
-
 
 
                 }
 
+                System.out.println("done saving file names and their relevant modification line ranges");
                 System.out.println(fileNames);
                 System.out.println(lineRangesChanged);
 
@@ -465,7 +475,7 @@ public class GettingBlameCommit extends CallingAPI {
 
     //============================= calling the graphql of GitHub through apache httpClient ==========================================
 
-    public void callingGraphqlApi(String repoLocation, String commitHash){
+    public void callingGraphqlApi(String repoLocation, String commitHash,boolean callingToGetBlameForSecondTime) throws IOException{
 
         // filtering the owner and the repository name from the repoLocation
         String owner= StringUtils.substringBefore(repoLocation,"/");
@@ -486,21 +496,41 @@ public class GettingBlameCommit extends CallingAPI {
         //      using an iterator for looping through the arraylists of filenames
         Iterator iteratorForFileNames = fileNames.iterator();
 
+        //saving the blame of each file that changed in the relevant commit hash
         while (iteratorForFileNames.hasNext()){
             String fileName= (String)iteratorForFileNames.next();
 
 
 
             //        String temp="{viewer {email login }}";
-
-            String temp="{repository(owner:\\\""+owner+"\\\",name:\\\""+repositoryName+"\\\"){object(expression:\\\""+commitHash+"\\\"){ ... on Commit{blame(path:\\\""+fileName+"\\\"){ranges{startingLine endingLine age commit{history(first: 2) { edges { node {  message url } } } author { name email } } } } } } } }";
             //        String temp="{repository(owner:\\\"wso2\\\",name:\\\"product-is\\\"){description}}";
+
+            String graphqlQuery=null;
+            JSONObject jsonObject= null;
+            
+            if(callingToGetBlameForSecondTime == false){
+
+                //query for calling the graphql for getting the blame of the merge commit that resides in PMT API output
+                graphqlQuery="{repository(owner:\\\""+owner+"\\\",name:\\\""+repositoryName+"\\\"){object(expression:\\\""+commitHash+"\\\"){ ... on Commit{blame(path:\\\""+fileName+"\\\"){ranges{startingLine endingLine age commit{history(first: 2) { edges { node {  message url } } } author { name email } } } } } } } }";
+                
+//                jsonObject= new JSONObject();
+//                jsonObject.put("query","{repository(owner:\""+owner+"\",name:\""+repositoryName+"\"){object(expression:\""+commitHash+"\"){ ... on Commit{blame(path:\""+fileName+"\"){ranges{startingLine endingLine age commit{history(first: 2) { edges { node {  message url } } } author { name email } } } } } } } }");
+            }
+            else{
+
+                //query for calling the graphql for obtaining the blame details of the parent commit that actually changed those line ranges
+                graphqlQuery="{repository(owner:\\\""+owner+"\\\",name:\\\""+repositoryName+"\\\"){object(expression:\\\""+commitHash+"\\\"){ ... on Commit{blame(path:\\\""+fileName+"\\\"){ranges{startingLine endingLine age commit{ url author { name email } } } } } } } }";
+                
+//                jsonObject = new JSONObject();
+//                jsonObject.put("query", "{repository(owner:\""+owner+"\",name:\""+repositoryName+"\"){object(expression:\""+commitHash+"\"){ ... on Commit{blame(path:\""+fileName+"\"){ranges{startingLine endingLine age commit{ url author { name email } } } } } } } }");
+            }
 
 
 
             try {
 
-                StringEntity entity= new StringEntity("{\"query\":\"query "+temp+"\"}");
+                StringEntity entity= new StringEntity("{\"query\":\"query "+graphqlQuery+"\"}");
+//                StringEntity entity= new StringEntity(jsonObject.toString());
 
 
                 httpPost.setEntity(entity);
@@ -518,8 +548,11 @@ public class GettingBlameCommit extends CallingAPI {
                 e.printStackTrace();
             }
 
+
+            BufferedWriter bufferedWritter=null;
+            BufferedReader bufferedReader=null;
             try{
-                BufferedReader bufferedReader= new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+                bufferedReader= new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
                 String line= null;
                 StringBuilder stringBuilder= new StringBuilder();
                 while((line=bufferedReader.readLine())!= null){
@@ -528,16 +561,20 @@ public class GettingBlameCommit extends CallingAPI {
 
                 }
 
+                //renaming the file .java to _java as it may conflict with the .json extension (if not will result in 2 extensions for the same file)
+                String fileNameWithoutExtension= StringUtils.substringBefore(fileName, ".");
+                String fileNamesExtension= StringUtils.substringAfter(fileName,".");
+
+                String modifiedFileName= fileNameWithoutExtension+"_"+fileNamesExtension;
+
+
                 // saving the output received to a file located in the same repo directory under the same owner of the repo
-                String saveLocation= repoLocation+"/FileChanged/"+commitHash+"/"+fileName+"blame.json";
+                String saveLocation= repoLocation+"/FileChanged/"+commitHash+"/"+modifiedFileName+"_blame.json";
+
                 File fileLocation= new File(location+saveLocation);
                 fileLocation.getParentFile().mkdirs();      //creating directories according to the file name given
-                BufferedWriter bufferedWritter= new BufferedWriter(new FileWriter(fileLocation));
+                bufferedWritter= new BufferedWriter(new FileWriter(fileLocation));
                 bufferedWritter.write(stringBuilder.toString());
-                
-                
-
-
 
                 System.out.println(stringBuilder.toString());
             }
@@ -545,10 +582,196 @@ public class GettingBlameCommit extends CallingAPI {
                 e.printStackTrace();
             }
 
+            finally{
+                if(bufferedWritter !=null){
+                    bufferedWritter.close();
+
+                }
+                if(bufferedReader != null){
+                    bufferedReader.close();}
+            }
+
+
+        }
+
+
+
+
+    }
+
+
+    //    ======================= reading blame of each file thus changed from applying the patch=======================
+
+    public void getBlameOfFile(String repoLocation, String commitHash){
+
+
+
+        boolean foundTheActualCommitRange= false;
+        //running a iterator for fileName arrayList to get the location of the above saved file
+
+        //--- here we cannot call this method after running the code in callingGraphqlApi as we call the same method in here-----------------
+        Iterator fileNameIterator = fileNames.iterator();
+
+        while (fileNameIterator.hasNext()){
+            String fileName=(String)fileNameIterator.next();
+
+
+            //renaming the file .java to _java as it may conflict with the .json extension (if not will result in 2 extensions for the same file)
+            String fileNameWithoutExtension= StringUtils.substringBefore(fileName, ".");
+            String fileNamesExtension= StringUtils.substringAfter(fileName,".");
+
+            String modifiedFileName= fileNameWithoutExtension+"_"+fileNamesExtension;
+
+
+            // saving the output received to a file located in the same repo directory under the same owner of the repo
+            String locationOfTheSavedFile= repoLocation+"/FileChanged/"+commitHash+"/"+modifiedFileName+"_blame.json";
+
+
+            //reading the JSON received from the graphql API
+            try {
+
+
+
+                JSONObject rootJSONObject =(JSONObject) parser.parse(new FileReader(location+locationOfTheSavedFile));
+                JSONObject dataJSONObject= (JSONObject)rootJSONObject.get("data");  
+                JSONObject repositoryJSONObect= (JSONObject) dataJSONObject.get("repository");
+                JSONObject objectJSONObject=(JSONObject)repositoryJSONObect.get("object");
+                JSONObject blameJSONObject= (JSONObject) objectJSONObject.get("blame");
+                JSONArray rangeJSONArray= (JSONArray) blameJSONObject.get("ranges");
+
+                // getting the starting line no of the range of lines that are modified from the patch
+
+                // using an Iterator for iterating in the lineRangesChanged arrayList 
+                Iterator lineNoIterator = lineRangesChanged.iterator();
+                while(lineNoIterator.hasNext()){
+
+                    // this gives an arraylist of the line ranges for the file exists in the current index of the fileName array list
+
+                    ArrayList<String> lineRangesOfAffectedFile= (ArrayList<String>)lineNoIterator.next();
+
+                    Iterator lineRangesOfAffectedFileIterator= lineRangesOfAffectedFile.iterator();
+
+                    while (lineRangesOfAffectedFileIterator.hasNext()){
+
+                        String lineRanges= (String)lineRangesOfAffectedFileIterator.next();
+                        int startingLineNo= Integer.parseInt(StringUtils.substringBefore(lineRanges,","));
+                        int endLineNo= Integer.parseInt(StringUtils.substringAfter(lineRanges,","));
+
+
+
+                        //checking line by line by iterating the startinLineNo
+
+                        while(endLineNo>=startingLineNo){
+                            //running through the rangeJSONArray
+
+                            for(int i=0; i<rangeJSONArray.size();i++){
+
+                                JSONObject rangeJSONObject= (JSONObject) rangeJSONArray.get(i);
+
+                                long tempStartingLineNo= (Long)rangeJSONObject.get("startingLine");
+                                long tempEndingLineNo=(Long)rangeJSONObject.get("endingLine");
+
+                                //checking whether the line belongs to that line range group
+                                if((tempStartingLineNo<=startingLineNo) &&(tempEndingLineNo>=startingLineNo)){
+                                    // so the relevant startingLineNo belongs in this line range in other words in this JSONObject
+
+                                    long age =(Long)rangeJSONObject.get("age");
+                                    if(age==1){
+                                        // this is the range where the code gets actually modified
+                                        JSONObject commitJSONObject= (JSONObject) rangeJSONObject.get("commit");
+                                        JSONObject historyJSONObject= (JSONObject) commitJSONObject.get("history");
+                                        JSONArray edgesJSONArray =(JSONArray) historyJSONObject.get("edges");
+
+
+                                        //getting the second json object from the array as it contain the commit of the parent which modified the above line range
+                                        JSONObject edgeJSONObject= (JSONObject) edgesJSONArray.get(1);
+
+                                        JSONObject nodeJSONObject=(JSONObject) edgeJSONObject.get("node");
+
+
+                                        String urlOfTheParentCommit= (String) nodeJSONObject.get("url");       // this contain the URL of the parent commit
+
+                                        //obtaining the repo name from the repository
+                                        String repoName =StringUtils.substringBetween(urlOfTheParentCommit, "github.com/", "/commit");
+                                        String commitHashOfTheParent= (String)StringUtils.substringAfter(urlOfTheParentCommit, "commit/");
+
+                                        //calling the graphql api to get the blame details for the parent commit
+                                        callingGraphqlApi(repoName, commitHashOfTheParent, true);
+
+                                        //setting  foundTheActualCommitRange true as we have found
+                                        foundTheActualCommitRange=true;
+                                        break;
+
+
+
+
+
+
+
+                                    }
+                                    else{
+                                        continue;
+                                    }
+
+
+
+
+
+                                }
+                                else{
+                                    continue;
+                                }
+
+
+
+
+
+                            }
+
+
+                            if(foundTheActualCommitRange== true){
+                                break;
+                            }
+
+                            else{
+                                startingLineNo++;
+                            }
+
+
+                        }
+
+
+
+
+
+
+
+
+                    }
+
+
+
+                }
+
+
+            } catch (FileNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (ParseException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+
+
 
 
 
         }
+
+
 
 
 
