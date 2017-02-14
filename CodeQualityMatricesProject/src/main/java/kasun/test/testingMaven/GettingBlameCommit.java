@@ -31,9 +31,12 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.ClientProtocolException;
@@ -349,7 +352,9 @@ public class GettingBlameCommit extends CallingAPI {
 
 
 
-            readingTheBlameReceived(locationOfTheSavedFile,fileName,owner,repositoryName,repoLocation);
+
+
+            readingTheBlameReceivedForAFileName(locationOfTheSavedFile,fileName,owner,repositoryName,repoLocation);
 
 
 
@@ -447,7 +452,7 @@ public class GettingBlameCommit extends CallingAPI {
 
     }
 
-    public void readingTheBlameReceived(String locationOfTheSavedFile,String fileName,String owner,String repositoryName,String repoLocation){
+    public void readingTheBlameReceivedForAFileName(String locationOfTheSavedFile,String fileName,String owner,String repositoryName,String repoLocation){
 
 
 
@@ -480,9 +485,16 @@ public class GettingBlameCommit extends CallingAPI {
                     String lineRanges= (String)lineRangesOfAffectedFileIterator.next();
                     int startingLineNo= Integer.parseInt(StringUtils.substringBefore(lineRanges,","));
                     int endLineNo= Integer.parseInt(StringUtils.substringAfter(lineRanges,","));
-                    
-                    // for saving all the parent commits in the line range
-                    ArrayList<String> commitHashesOfTheParent= new ArrayList<String>();
+
+                    // for saving the age field with the relevant JSONObject index
+                    ArrayList<Long> ageArrayList= new ArrayList<Long>();
+                    //
+                    //                    ArrayList<ArrayList<Integer>> indexOfJSONObject = new ArrayList<ArrayList<Integer>>();  // for storing the indexes of the JSONObject
+                    //
+                    //                    indexOfJSONObject.add(new ArrayList<Integer>());
+
+                    Map <Long,ArrayList<Integer>> mapForStoringAgeAndIndex= new HashMap<Long, ArrayList<Integer>> ();
+
 
 
 
@@ -498,106 +510,129 @@ public class GettingBlameCommit extends CallingAPI {
                             long tempStartingLineNo= (Long)rangeJSONObject.get("startingLine");
                             long tempEndingLineNo=(Long)rangeJSONObject.get("endingLine");
 
-                          
-                            
-                            
+
+
+
                             //checking whether the line belongs to that line range group
                             if((tempStartingLineNo<=startingLineNo) &&(tempEndingLineNo>=startingLineNo)){
                                 // so the relevant startingLineNo belongs in this line range in other words in this JSONObject
 
 
                                 // ===================================== think here on a solution to reuse this code for obtainig the url of PRs. use the  toCollectCommitHashesForFindingPrs===========
-//                                long age =(Long)rangeJSONObject.get("age");
-
-//                                if(age==1){
-
-                                    // this is the range where the code gets actually modified
-                                    JSONObject commitJSONObject= (JSONObject) rangeJSONObject.get("commit");
-                                    JSONObject historyJSONObject= (JSONObject) commitJSONObject.get("history");
-                                    JSONArray edgesJSONArray =(JSONArray) historyJSONObject.get("edges");
+                                long age =(Long)rangeJSONObject.get("age");
+                                //                                int indexOf=0;
 
 
-                                    //getting the second json object from the array as it contain the commit of the parent which modified the above line range
-                                    JSONObject edgeJSONObject= (JSONObject) edgesJSONArray.get(1);
-
-                                    JSONObject nodeJSONObject=(JSONObject) edgeJSONObject.get("node");
 
 
-                                    String urlOfTheParentCommit= (String) nodeJSONObject.get("url");       // this contain the URL of the parent commit
+                                mapForStoringAgeAndIndex.putIfAbsent(age, new ArrayList<Integer>());
+                                if(!mapForStoringAgeAndIndex.get(age).contains(i)){
+                                    mapForStoringAgeAndIndex.get(age).add(i);
+                                }
 
-                                    String commitHash=(String)StringUtils.substringAfter(urlOfTheParentCommit, "commit/");
-                                    
-                                    // check whether the same commit hash is already in the list
-                                    if(!commitHashesOfTheParent.contains(commitHash)){
-                                        
-                                        commitHashesOfTheParent.add(commitHash);
-                                        
-                                        
-                                    }
 
-                                   
+                                //
+                                //                                if(!ageArrayList.contains(age)){
+                                //
+                                //                                    ageArrayList.add(age);
+                                //                                    indexOf= ageArrayList.indexOf(age);
+                                //
+                                //                                    ArrayList<Integer> tempJSONObjectAL= (ArrayList<Integer>)indexOfJSONObject.get(indexOf);       //getting the relevant arrayList at the current index of the indexJSONObject arraylist
+                                //                                    
+                                //                                    if(!tempJSONObjectAL.contains(i)){
+                                //                                        tempJSONObjectAL.add(i);    // adding the current index of the JSONObject to the arraylist
+                                //
+                                //                                    }
+                                //                                    
+                                //
+                                //
+                                //
+                                //                                }
+                                //                                else{
+                                //
+                                //                                    indexOf= ageArrayList.indexOf(age); // getting the index of the relevant age in the ageArrayList
+                                //
+                                //                                    ArrayList<Integer> tempJSONObjectAL= indexOfJSONObject.get(indexOf);        //getting the relevant arrayList at the current index of the indexJSONObject arraylist
+                                //                                    
+                                //                                    if(!tempJSONObjectAL.contains(i)){
+                                //                                        tempJSONObjectAL.add(i);    // adding the current index of the JSONObject to the arraylist
+                                //
+                                //                                    }
+                                //
+                                //
+                                //                                }
 
-                                   
 
-                                    //setting  foundTheActualCommitRange true as we have found the line range that contain the given line of code
-//                                    foundTheActualCommitRange=true;
-//                                    break;
-
-//                                }
-//                                else{
-//                                    continue;
-//                                }
 
                             }
                             else{
                                 continue;
                             }
 
+
+
+
+
                         }
 
 
-//                        if(foundTheActualCommitRange== true){
-//                            break;      // to avoid looping through line numbers as we have found the correct line range
-//
-//                        }
 
-//                        else{
-                            startingLineNo++;
-//                        }
+                        startingLineNo++;
+
 
 
                     }
-
-                    
-                    //calling the graphql api to get the blame details of the current file for the parent commits (That is found by filtering in the graqhql output)
-
-                    Iterator commitHashOfTheParentIterator= commitHashesOfTheParent.iterator();
-                    
-                    while(commitHashOfTheParentIterator.hasNext()){
-                        String commitHashForCallingGraphQl= (String)commitHashOfTheParentIterator.next();
-                        
-                        
-                        graphqlApiJsonObject.put("query", "{repository(owner:\""+owner+"\",name:\""+repositoryName+"\"){object(expression:\""+commitHashForCallingGraphQl+"\"){ ... on Commit{blame(path:\""+fileName+"\"){ranges{startingLine endingLine age commit{ url author { name email } } } } } } } }");
-                       
-                        
-                        try{
-                            
-                            locationOfTheSavedFile= callingGraphQl(graphqlApiJsonObject,fileName, commitHashForCallingGraphQl,repoLocation);
-
-
-                        }
-                        catch(IOException e){
-                            e.printStackTrace();
-                        }
-                        
-                        
-                    }
-
-                    
+                    System.out.println(mapForStoringAgeAndIndex);
 
 
 
-                    // the programms starts to check for the other line range of the same file, if a next range exists (git always keep a new line range for each modification)
+                    //                    // this is the range where the code gets actually modified
+                    //                    System.out.println("From here");
+                    //                    JSONObject commitJSONObject= (JSONObject) rangeJSONObject.get("commit");
+                    //                    JSONObject historyJSONObject= (JSONObject) commitJSONObject.get("history");
+                    //                    JSONArray edgesJSONArray =(JSONArray) historyJSONObject.get("edges");
+                    //
+                    //
+                    //                    //getting the second json object from the array as it contain the commit of the parent which modified the above line range
+                    //                    JSONObject edgeJSONObject= (JSONObject) edgesJSONArray.get(1);
+                    //
+                    //                    JSONObject nodeJSONObject=(JSONObject) edgeJSONObject.get("node");
+                    //
+                    //
+                    //                    String urlOfTheParentCommit= (String) nodeJSONObject.get("url");       // this contain the URL of the parent commit
+                    //
+                    //                    String commitHash=(String)StringUtils.substringAfter(urlOfTheParentCommit, "commit/");
+                    //
+                    //
+                    //                    //calling the graphql api to get the blame details of the current file for the parent commits (That is found by filtering in the graqhql output)
+                    //
+                    //                    Iterator commitHashOfTheParentIterator= commitHashesOfTheParent.iterator();
+                    //
+                    //                    while(commitHashOfTheParentIterator.hasNext()){
+                    //                        String commitHashForCallingGraphQl= (String)commitHashOfTheParentIterator.next();
+                    //
+                    //
+                    //                        graphqlApiJsonObject.put("query", "{repository(owner:\""+owner+"\",name:\""+repositoryName+"\"){object(expression:\""+commitHashForCallingGraphQl+"\"){ ... on Commit{blame(path:\""+fileName+"\"){ranges{startingLine endingLine age commit{ url author { name email } } } } } } } }");
+                    //
+                    //
+                    //                        try{
+                    //
+                    //                            locationOfTheSavedFile= callingGraphQl(graphqlApiJsonObject,fileName, commitHashForCallingGraphQl,repoLocation);
+                    //
+                    //
+                    //                        }
+                    //                        catch(IOException e){
+                    //                            e.printStackTrace();
+                    //                        }
+                    //
+                    //
+                    //                    }
+                    //
+                    //
+                    //
+                    //
+                    //
+                    //                    // the programms starts to check for the other line range of the same file, if a next range exists (git always keep a new line range for each modification)
 
 
 
