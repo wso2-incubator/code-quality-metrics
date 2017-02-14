@@ -488,10 +488,7 @@ public class GettingBlameCommit extends CallingAPI {
 
                     // for saving the age field with the relevant JSONObject index
                     ArrayList<Long> ageArrayList= new ArrayList<Long>();
-                    //
-                    //                    ArrayList<ArrayList<Integer>> indexOfJSONObject = new ArrayList<ArrayList<Integer>>();  // for storing the indexes of the JSONObject
-                    //
-                    //                    indexOfJSONObject.add(new ArrayList<Integer>());
+                 
 
                     Map <Long,ArrayList<Integer>> mapForStoringAgeAndIndex= new HashMap<Long, ArrayList<Integer>> ();
 
@@ -520,8 +517,7 @@ public class GettingBlameCommit extends CallingAPI {
 
                                 // ===================================== think here on a solution to reuse this code for obtainig the url of PRs. use the  toCollectCommitHashesForFindingPrs===========
                                 long age =(Long)rangeJSONObject.get("age");
-                                //                                int indexOf=0;
-
+                                
 
 
 
@@ -531,36 +527,7 @@ public class GettingBlameCommit extends CallingAPI {
                                 }
 
 
-                                //
-                                //                                if(!ageArrayList.contains(age)){
-                                //
-                                //                                    ageArrayList.add(age);
-                                //                                    indexOf= ageArrayList.indexOf(age);
-                                //
-                                //                                    ArrayList<Integer> tempJSONObjectAL= (ArrayList<Integer>)indexOfJSONObject.get(indexOf);       //getting the relevant arrayList at the current index of the indexJSONObject arraylist
-                                //                                    
-                                //                                    if(!tempJSONObjectAL.contains(i)){
-                                //                                        tempJSONObjectAL.add(i);    // adding the current index of the JSONObject to the arraylist
-                                //
-                                //                                    }
-                                //                                    
-                                //
-                                //
-                                //
-                                //                                }
-                                //                                else{
-                                //
-                                //                                    indexOf= ageArrayList.indexOf(age); // getting the index of the relevant age in the ageArrayList
-                                //
-                                //                                    ArrayList<Integer> tempJSONObjectAL= indexOfJSONObject.get(indexOf);        //getting the relevant arrayList at the current index of the indexJSONObject arraylist
-                                //                                    
-                                //                                    if(!tempJSONObjectAL.contains(i)){
-                                //                                        tempJSONObjectAL.add(i);    // adding the current index of the JSONObject to the arraylist
-                                //
-                                //                                    }
-                                //
-                                //
-                                //                                }
+                          
 
 
 
