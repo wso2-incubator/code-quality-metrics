@@ -55,6 +55,8 @@ public class GettingBlameCommit extends CallingAPI {
 
     protected ArrayList<String> fileNames = new ArrayList<String>();
     protected List<ArrayList<String>> lineRangesChanged= new ArrayList<ArrayList<String>>();      // for saving the line no that are changed
+    JSONObject graphqlApiJsonObject= new JSONObject();
+
 
 
 
@@ -151,34 +153,34 @@ public class GettingBlameCommit extends CallingAPI {
 
 
                 //            calling the graphql API for getting blame information
-                
-                
-//====================================================================================================================================================
-//                try {
-                    
-//                    callingGraphqlApi(repoLocation[i],commitHash,false);
-//
-//                    // reading the blame thus received from graphql API
-//                    readingBlameOfFile(repoLocation[i],commitHash,false);
 
-                    
-                 
 
-                
-//                } catch (IOException e) {
-//                   // TODO Auto-generated catch block
-//                    e.printStackTrace();
-//                }
-                
- //====================================================================================================================================================
-                
-                
+                //====================================================================================================================================================
+                //                try {
+
+                //                    callingGraphqlApi(repoLocation[i],commitHash,false);
+                //
+                //                    // reading the blame thus received from graphql API
+                //                    readingBlameOfFile(repoLocation[i],commitHash,false);
+
+
+
+
+
+                //                } catch (IOException e) {
+                //                   // TODO Auto-generated catch block
+                //                    e.printStackTrace();
+                //                }
+
+                //====================================================================================================================================================
+
+
                 iteratingOver(repoLocation[i],commitHash);
-                
-                
-                
-                
-//                =========================== testing new one ================================
+
+
+
+
+                //                =========================== testing new one ================================
             }
         }
 
@@ -328,7 +330,6 @@ public class GettingBlameCommit extends CallingAPI {
 
         //        iterating over the fileNames arraylist for the given commit
         Iterator iteratorForFileNames= fileNames.iterator();
-        JSONObject graphqlApiJsonObject= new JSONObject();
 
         while(iteratorForFileNames.hasNext()){
             String fileName= (String)iteratorForFileNames.next();
@@ -337,7 +338,7 @@ public class GettingBlameCommit extends CallingAPI {
             graphqlApiJsonObject.put("query","{repository(owner:\""+owner+"\",name:\""+repositoryName+"\"){object(expression:\""+commitHash+"\"){ ... on Commit{blame(path:\""+fileName+"\"){ranges{startingLine endingLine age commit{history(first: 2) { edges { node {  message url } } } author { name email } } } } } } } }");
 
             try{
-                //            calling the graphql API for getting blame information and saving it in a location.
+                //            calling the graphql API for getting blame information for the current file and saving it in a location.
                 locationOfTheSavedFile= callingGraphQl(graphqlApiJsonObject,fileName,commitHash,repoLocation);
 
             }
@@ -347,147 +348,8 @@ public class GettingBlameCommit extends CallingAPI {
             //            reading the above saved output for the current file name
 
 
-            try {
 
-
-                boolean foundTheActualCommitRange= false;
-                //running a iterator for fileName arrayList to get the location of the above saved file
-
-
-                JSONObject rootJSONObject =(JSONObject) parser.parse(new FileReader(location+locationOfTheSavedFile));
-                JSONObject dataJSONObject= (JSONObject)rootJSONObject.get("data");  
-                JSONObject repositoryJSONObect= (JSONObject) dataJSONObject.get("repository");
-                JSONObject objectJSONObject=(JSONObject)repositoryJSONObect.get("object");
-                JSONObject blameJSONObject= (JSONObject) objectJSONObject.get("blame");
-                JSONArray rangeJSONArray= (JSONArray) blameJSONObject.get("ranges");
-
-                // --------------------getting the starting line no of the range of lines that are modified from the patch-----------------
-
-                // using an Iterator for iterating in the lineRangesChanged arrayList 
-                Iterator lineNoIterator = lineRangesChanged.iterator();
-
-                while(lineNoIterator.hasNext()){
-
-                    // this gives an arraylist of the line ranges for the file exists in the current index of the fileName array list
-
-                    ArrayList<String> lineRangesOfAffectedFile= (ArrayList<String>)lineNoIterator.next();
-
-                    Iterator lineRangesOfAffectedFileIterator= lineRangesOfAffectedFile.iterator();     // iterator for the array list inside the root arraylist
-
-                    while (lineRangesOfAffectedFileIterator.hasNext()){
-
-                        String lineRanges= (String)lineRangesOfAffectedFileIterator.next();
-                        int startingLineNo= Integer.parseInt(StringUtils.substringBefore(lineRanges,","));
-                        int endLineNo= Integer.parseInt(StringUtils.substringAfter(lineRanges,","));
-
-
-
-                        //checking line by line by iterating the startinLineNo
-
-                        while(endLineNo>=startingLineNo){
-                            //running through the rangeJSONArray
-
-                            for(int i=0; i<rangeJSONArray.size();i++){
-
-                                JSONObject rangeJSONObject= (JSONObject) rangeJSONArray.get(i);
-
-                                long tempStartingLineNo= (Long)rangeJSONObject.get("startingLine");
-                                long tempEndingLineNo=(Long)rangeJSONObject.get("endingLine");
-
-                                //checking whether the line belongs to that line range group
-                                if((tempStartingLineNo<=startingLineNo) &&(tempEndingLineNo>=startingLineNo)){
-                                    // so the relevant startingLineNo belongs in this line range in other words in this JSONObject
-
-
-                                    // ===================================== think here on a solution to reuse this code for obtainig the url of PRs. use the  toCollectCommitHashesForFindingPrs===========
-                                    long age =(Long)rangeJSONObject.get("age");
-
-                                    if(age==1){
-
-                                        // this is the range where the code gets actually modified
-                                        JSONObject commitJSONObject= (JSONObject) rangeJSONObject.get("commit");
-                                        JSONObject historyJSONObject= (JSONObject) commitJSONObject.get("history");
-                                        JSONArray edgesJSONArray =(JSONArray) historyJSONObject.get("edges");
-
-
-                                        //getting the second json object from the array as it contain the commit of the parent which modified the above line range
-                                        JSONObject edgeJSONObject= (JSONObject) edgesJSONArray.get(1);
-
-                                        JSONObject nodeJSONObject=(JSONObject) edgeJSONObject.get("node");
-
-
-                                        String urlOfTheParentCommit= (String) nodeJSONObject.get("url");       // this contain the URL of the parent commit
-
-
-                                        String commitHashOfTheParent= (String)StringUtils.substringAfter(urlOfTheParentCommit, "commit/");
-
-                                        //calling the graphql api to get the blame details o the current file for the parent commit (That is found by filtering in the first graqhql output)
-
-                                        graphqlApiJsonObject.put("query", "{repository(owner:\""+owner+"\",name:\""+repositoryName+"\"){object(expression:\""+commitHashOfTheParent+"\"){ ... on Commit{blame(path:\""+fileName+"\"){ranges{startingLine endingLine age commit{ url author { name email } } } } } } } }");
-
-                                        try{
-                                        locationOfTheSavedFile= callingGraphQl(graphqlApiJsonObject,fileName, commitHashOfTheParent,repoLocation);
-                                        
-                                        
-                                        }
-                                        catch(IOException e){
-                                            e.printStackTrace();
-                                        }
-
-                                        //setting  foundTheActualCommitRange true as we have found the line range that contain the given line of code
-                                        foundTheActualCommitRange=true;
-                                        break;
-
-                                    }
-                                    else{
-                                        continue;
-                                    }
-
-                                }
-                                else{
-                                    continue;
-                                }
-
-                            }
-
-
-                            if(foundTheActualCommitRange== true){
-                                break;      // to avoid looping through line numbers as we have found the correct line range
-
-                            }
-
-                            else{
-                                startingLineNo++;
-                            }
-
-
-                        }
-
-
-
-
-                        // the programms starts to check for the other line range of the same file, if a next range exists (git always keep a new line range for each modification)
-
-
-
-                    }
-
-
-
-                }
-
-
-            } catch (FileNotFoundException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (ParseException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-
+            readingTheBlameReceived(locationOfTheSavedFile,fileName,owner,repositoryName,repoLocation);
 
 
 
@@ -556,12 +418,12 @@ public class GettingBlameCommit extends CallingAPI {
 
             // saving the output received to a file located in the same repo directory under the same owner of the repo
             saveLocation= repoLocation+"/FileChanged/"+commitHash+"/"+modifiedFileName+"_blame.json";
-          
+
 
             File fileLocation= new File(location+saveLocation);
             fileLocation.getParentFile().mkdirs();      //creating directories according to the file name given
             bufferedWritter= new BufferedWriter(new FileWriter(fileLocation));
-            
+
             bufferedWritter.write(stringBuilder.toString());
 
             System.out.println(stringBuilder.toString());
@@ -584,6 +446,182 @@ public class GettingBlameCommit extends CallingAPI {
 
 
     }
+
+    public void readingTheBlameReceived(String locationOfTheSavedFile,String fileName,String owner,String repositoryName,String repoLocation){
+
+
+
+        boolean foundTheActualCommitRange= false;
+        //running a iterator for fileName arrayList to get the location of the above saved file
+
+        try{
+            JSONObject rootJSONObject =(JSONObject) parser.parse(new FileReader(location+locationOfTheSavedFile));
+            JSONObject dataJSONObject= (JSONObject)rootJSONObject.get("data");  
+            JSONObject repositoryJSONObect= (JSONObject) dataJSONObject.get("repository");
+            JSONObject objectJSONObject=(JSONObject)repositoryJSONObect.get("object");
+            JSONObject blameJSONObject= (JSONObject) objectJSONObject.get("blame");
+            JSONArray rangeJSONArray= (JSONArray) blameJSONObject.get("ranges");
+
+            // --------------------getting the starting line no of the range of lines that are modified from the patch-----------------
+
+            // using an Iterator for iterating in the lineRangesChanged arrayList 
+            Iterator lineNoIterator = lineRangesChanged.iterator();
+
+            while(lineNoIterator.hasNext()){
+
+                // this gives an arraylist of the line ranges for the file exists in the current index of the fileName array list
+
+                ArrayList<String> lineRangesOfAffectedFile= (ArrayList<String>)lineNoIterator.next();
+
+                Iterator lineRangesOfAffectedFileIterator= lineRangesOfAffectedFile.iterator();     // iterator for the array list inside the root arraylist
+
+                while (lineRangesOfAffectedFileIterator.hasNext()){
+
+                    String lineRanges= (String)lineRangesOfAffectedFileIterator.next();
+                    int startingLineNo= Integer.parseInt(StringUtils.substringBefore(lineRanges,","));
+                    int endLineNo= Integer.parseInt(StringUtils.substringAfter(lineRanges,","));
+                    
+                    // for saving all the parent commits in the line range
+                    ArrayList<String> commitHashesOfTheParent= new ArrayList<String>();
+
+
+
+                    //checking line by line by iterating the startinLineNo
+
+                    while(endLineNo>=startingLineNo){
+                        //running through the rangeJSONArray
+
+                        for(int i=0; i<rangeJSONArray.size();i++){
+
+                            JSONObject rangeJSONObject= (JSONObject) rangeJSONArray.get(i);
+
+                            long tempStartingLineNo= (Long)rangeJSONObject.get("startingLine");
+                            long tempEndingLineNo=(Long)rangeJSONObject.get("endingLine");
+
+                          
+                            
+                            
+                            //checking whether the line belongs to that line range group
+                            if((tempStartingLineNo<=startingLineNo) &&(tempEndingLineNo>=startingLineNo)){
+                                // so the relevant startingLineNo belongs in this line range in other words in this JSONObject
+
+
+                                // ===================================== think here on a solution to reuse this code for obtainig the url of PRs. use the  toCollectCommitHashesForFindingPrs===========
+//                                long age =(Long)rangeJSONObject.get("age");
+
+//                                if(age==1){
+
+                                    // this is the range where the code gets actually modified
+                                    JSONObject commitJSONObject= (JSONObject) rangeJSONObject.get("commit");
+                                    JSONObject historyJSONObject= (JSONObject) commitJSONObject.get("history");
+                                    JSONArray edgesJSONArray =(JSONArray) historyJSONObject.get("edges");
+
+
+                                    //getting the second json object from the array as it contain the commit of the parent which modified the above line range
+                                    JSONObject edgeJSONObject= (JSONObject) edgesJSONArray.get(1);
+
+                                    JSONObject nodeJSONObject=(JSONObject) edgeJSONObject.get("node");
+
+
+                                    String urlOfTheParentCommit= (String) nodeJSONObject.get("url");       // this contain the URL of the parent commit
+
+                                    String commitHash=(String)StringUtils.substringAfter(urlOfTheParentCommit, "commit/");
+                                    
+                                    // check whether the same commit hash is already in the list
+                                    if(!commitHashesOfTheParent.contains(commitHash)){
+                                        
+                                        commitHashesOfTheParent.add(commitHash);
+                                        
+                                        
+                                    }
+
+                                   
+
+                                   
+
+                                    //setting  foundTheActualCommitRange true as we have found the line range that contain the given line of code
+//                                    foundTheActualCommitRange=true;
+//                                    break;
+
+//                                }
+//                                else{
+//                                    continue;
+//                                }
+
+                            }
+                            else{
+                                continue;
+                            }
+
+                        }
+
+
+//                        if(foundTheActualCommitRange== true){
+//                            break;      // to avoid looping through line numbers as we have found the correct line range
+//
+//                        }
+
+//                        else{
+                            startingLineNo++;
+//                        }
+
+
+                    }
+
+                    
+                    //calling the graphql api to get the blame details of the current file for the parent commits (That is found by filtering in the graqhql output)
+
+                    Iterator commitHashOfTheParentIterator= commitHashesOfTheParent.iterator();
+                    
+                    while(commitHashOfTheParentIterator.hasNext()){
+                        String commitHashForCallingGraphQl= (String)commitHashOfTheParentIterator.next();
+                        
+                        
+                        graphqlApiJsonObject.put("query", "{repository(owner:\""+owner+"\",name:\""+repositoryName+"\"){object(expression:\""+commitHashForCallingGraphQl+"\"){ ... on Commit{blame(path:\""+fileName+"\"){ranges{startingLine endingLine age commit{ url author { name email } } } } } } } }");
+                       
+                        
+                        try{
+                            
+                            locationOfTheSavedFile= callingGraphQl(graphqlApiJsonObject,fileName, commitHashForCallingGraphQl,repoLocation);
+
+
+                        }
+                        catch(IOException e){
+                            e.printStackTrace();
+                        }
+                        
+                        
+                    }
+
+                    
+
+
+
+                    // the programms starts to check for the other line range of the same file, if a next range exists (git always keep a new line range for each modification)
+
+
+
+                }
+
+
+
+            }
+
+
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (ParseException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+
+
 
     //  =========================================================================================================================================================  
 
