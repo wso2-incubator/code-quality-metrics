@@ -198,6 +198,7 @@ public class GettingBlameCommit extends CallingAPI {
             }
         }
         
+        // for printing the author names.
         System.out.println(authorNames);
 
 
