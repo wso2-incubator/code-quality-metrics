@@ -276,20 +276,28 @@ public class GettingBlameCommit extends CallingAPI {
 
                     //filtering only the line ranges that are modified and saving to a string array
                     String patch= (String)tempJsonObject.get("patch");
-                    String lineChanges[]= StringUtils.substringsBetween(patch,"@@","@@");
+                    String lineChanges[]= StringUtils.substringsBetween(patch,"@@ "," @@");
 
-                    //filtering only the lines that existed in the previous file and saving them in to the same array
+                    //filtering the lines that existed in the previous file, that exists in the new file and saving them in to the same array
                     for (int j=0; j<lineChanges.length;j++){
 
-                        String tempString= lineChanges[i];
-                        String tempStringWithLinesBeingModified = StringUtils.substringBetween(tempString,"-"," +");
+                        //@@ -22,7 +22,7 @@
+                        String tempString= lineChanges[j];
+                        String lineRangeInTheOldFileBeingModified = StringUtils.substringBetween(tempString,"-"," +");      // for taking the authors and commit hashes of the previous lines
+                        String lineRangeInTheNewFileResultedFromModification= StringUtils.substringAfter(tempString, "+");  // for taking the parent commit
 
-                        int intialLineNo= Integer.parseInt(StringUtils.substringBefore(tempStringWithLinesBeingModified, ","));
-                        int tempEndLineNo= Integer.parseInt(StringUtils.substringAfter(tempStringWithLinesBeingModified,","));
-                        int endLineNo= intialLineNo+ (tempEndLineNo-1);
+                        int intialLineNoInOldFile= Integer.parseInt(StringUtils.substringBefore(lineRangeInTheOldFileBeingModified, ","));
+                        int tempEndLineNoInOldFile= Integer.parseInt(StringUtils.substringAfter(lineRangeInTheOldFileBeingModified,","));
+                        int endLineNoOfOldFile= intialLineNoInOldFile+ (tempEndLineNoInOldFile-1);
+                        
+                        int intialLineNoInNewFile= Integer.parseInt(StringUtils.substringBefore(lineRangeInTheNewFileResultedFromModification, ","));
+                        int tempEndLineNoInNewFile= Integer.parseInt(StringUtils.substringAfter(lineRangeInTheNewFileResultedFromModification,","));
+                        int endLineNoOfNewFile= intialLineNoInNewFile+ (tempEndLineNoInNewFile-1);
+                        
+                        
 
                         // storing the line ranges that are being modified in the same array by replacing values
-                        lineChanges[j]=intialLineNo+","+endLineNo;
+                        lineChanges[j]=intialLineNoInOldFile+","+endLineNoOfOldFile+"/"+intialLineNoInNewFile+","+endLineNoOfNewFile;
 
                     }
 
@@ -525,9 +533,27 @@ public class GettingBlameCommit extends CallingAPI {
 
             while (arrayListOfRelevantChangedLinesIterator.hasNext()){
 
+                int startingLineNo;
+                int endLineNo;
+                
                 String lineRanges= (String)arrayListOfRelevantChangedLinesIterator.next();
-                int startingLineNo= Integer.parseInt(StringUtils.substringBefore(lineRanges,","));
-                int endLineNo= Integer.parseInt(StringUtils.substringAfter(lineRanges,","));
+                if(gettingPr==true){
+                    // need to consider the line range in the old file for finding authors and reviewers
+                    String oldFileRange=StringUtils.substringBefore(lineRanges,"/");
+                    startingLineNo=Integer.parseInt(StringUtils.substringBefore(oldFileRange,","));
+                    endLineNo=Integer.parseInt(StringUtils.substringAfter(oldFileRange,","));
+                    
+                    
+                    
+                }
+                
+                else{
+                    // need to consider the line range in the new file resulted from applying the commit for finding parent commits
+                    String newFileRange= StringUtils.substringAfter(lineRanges,"/");
+                     startingLineNo= Integer.parseInt(StringUtils.substringBefore(newFileRange,","));
+                     endLineNo= Integer.parseInt(StringUtils.substringAfter(newFileRange,","));
+                }
+                
 
 
 
@@ -556,7 +582,6 @@ public class GettingBlameCommit extends CallingAPI {
                             // so the relevant startingLineNo belongs in this line range in other words in this JSONObject
 
 
-                            // ===================================== think here on a solution to reuse this code for obtainig the url of PRs. use the  toCollectCommitHashesForFindingPrs===========
                             if(gettingPr==false){
                                 long age =(Long)rangeJSONObject.get("age");
 
@@ -565,7 +590,7 @@ public class GettingBlameCommit extends CallingAPI {
                                 // storing the age field with relevant index of the JSONObject
                                 mapForStoringAgeAndIndex.putIfAbsent(age, new ArrayList<Integer>());
                                 if(!mapForStoringAgeAndIndex.get(age).contains(i)){
-                                    mapForStoringAgeAndIndex.get(age).add(i);   // adding if the index is not present in the array list
+                                    mapForStoringAgeAndIndex.get(age).add(i);   // adding if the index is not present in the array list for the relevant age
                                 }
 
                             }
