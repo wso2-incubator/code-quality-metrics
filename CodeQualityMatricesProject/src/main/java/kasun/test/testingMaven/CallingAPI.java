@@ -236,7 +236,7 @@ public class CallingAPI {
                     for(int j =0; j< tempCommitsJSONArray.size();j++){
 
 
-                        patchInformation_svnRevisionpublic[j]=(String)tempCommitsJSONArray.get(j);
+                        patchInformation_svnRevisionpublic[j]=((String)tempCommitsJSONArray.get(j)).trim();     // for ommiting the white spaces at the begingin and end of the commits
 
 
                     }
