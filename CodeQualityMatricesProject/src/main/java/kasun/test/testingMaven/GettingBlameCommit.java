@@ -65,8 +65,11 @@ public class GettingBlameCommit extends CallingAPI {
     JSONObject graphqlApiJsonObject= new JSONObject();
 
     Set <String> commitHashesOfTheParent;
-    
-    Set <String> authorNames= new HashSet<String>();
+
+    // this can be taken as repo vice
+    Set <String> authorNames= new HashSet<String>();    //as the authors are for all the commits that exists in the relevant patch
+
+    Set <String> commitHashForPRReview= new HashSet<String>();  // as relevant commits in old file
 
 
 
@@ -158,7 +161,7 @@ public class GettingBlameCommit extends CallingAPI {
                 //clearing all the data in the current fileNames and lineRangesChanged arraylists for each repository
                 fileNames.clear();
                 lineRangesChanged.clear();
-//                authorNames.clear();
+                authorNames.clear();
 
 
                 callingToGetFilesChanged(repoLocation[i],commitHash); 
@@ -197,7 +200,7 @@ public class GettingBlameCommit extends CallingAPI {
                 //                =========================== testing new one ================================
             }
         }
-        
+
         // for printing the author names.
         System.out.println(authorNames);
 
@@ -288,13 +291,19 @@ public class GettingBlameCommit extends CallingAPI {
 
                         int intialLineNoInOldFile= Integer.parseInt(StringUtils.substringBefore(lineRangeInTheOldFileBeingModified, ","));
                         int tempEndLineNoInOldFile= Integer.parseInt(StringUtils.substringAfter(lineRangeInTheOldFileBeingModified,","));
-                        int endLineNoOfOldFile= intialLineNoInOldFile+ (tempEndLineNoInOldFile-1);
-                        
+                        int endLineNoOfOldFile;
+                        if(intialLineNoInOldFile!=0){
+                            endLineNoOfOldFile= intialLineNoInOldFile+ (tempEndLineNoInOldFile-1);
+                        }
+                        else{
+                            endLineNoOfOldFile=tempEndLineNoInOldFile;
+                        }
+
                         int intialLineNoInNewFile= Integer.parseInt(StringUtils.substringBefore(lineRangeInTheNewFileResultedFromModification, ","));
                         int tempEndLineNoInNewFile= Integer.parseInt(StringUtils.substringAfter(lineRangeInTheNewFileResultedFromModification,","));
                         int endLineNoOfNewFile= intialLineNoInNewFile+ (tempEndLineNoInNewFile-1);
-                        
-                        
+
+
 
                         // storing the line ranges that are being modified in the same array by replacing values
                         lineChanges[j]=intialLineNoInOldFile+","+endLineNoOfOldFile+"/"+intialLineNoInNewFile+","+endLineNoOfNewFile;
@@ -535,172 +544,192 @@ public class GettingBlameCommit extends CallingAPI {
 
                 int startingLineNo;
                 int endLineNo;
-                
+
                 String lineRanges= (String)arrayListOfRelevantChangedLinesIterator.next();
-                if(gettingPr==true){
-                    // need to consider the line range in the old file for finding authors and reviewers
-                    String oldFileRange=StringUtils.substringBefore(lineRanges,"/");
-                    startingLineNo=Integer.parseInt(StringUtils.substringBefore(oldFileRange,","));
-                    endLineNo=Integer.parseInt(StringUtils.substringAfter(oldFileRange,","));
-                    
-                    
-                    
-                }
+
+                String oldFileRange=StringUtils.substringBefore(lineRanges,"/");
+                String newFileRange= StringUtils.substringAfter(lineRanges,"/");
                 
+                // need to skip the newly created files from taking the blame
+                if(oldFileRange.equals("0,0")){
+                    
+                    continue;
+
+                }
                 else{
-                    // need to consider the line range in the new file resulted from applying the commit for finding parent commits
-                    String newFileRange= StringUtils.substringAfter(lineRanges,"/");
-                     startingLineNo= Integer.parseInt(StringUtils.substringBefore(newFileRange,","));
-                     endLineNo= Integer.parseInt(StringUtils.substringAfter(newFileRange,","));
-                }
-                
+
+                    if(gettingPr==true){
+                        // need to consider the line range in the old file for finding authors and reviewers
+
+                        startingLineNo=Integer.parseInt(StringUtils.substringBefore(oldFileRange,","));
+                        endLineNo=Integer.parseInt(StringUtils.substringAfter(oldFileRange,","));
 
 
 
-                Map <Long,ArrayList<Integer>> mapForStoringAgeAndIndex= new HashMap<Long, ArrayList<Integer>> ();
+                    }
 
+                    else{
+                        // need to consider the line range in the new file resulted from applying the commit for finding parent commits
 
-
-
-                //checking line by line by iterating the startinLineNo
-
-                while(endLineNo>=startingLineNo){
-                    //running through the rangeJSONArray
-
-                    for(int i=0; i<rangeJSONArray.size();i++){
-
-                        JSONObject rangeJSONObject= (JSONObject) rangeJSONArray.get(i);
-
-                        long tempStartingLineNo= (Long)rangeJSONObject.get("startingLine");
-                        long tempEndingLineNo=(Long)rangeJSONObject.get("endingLine");
+                        startingLineNo= Integer.parseInt(StringUtils.substringBefore(newFileRange,","));
+                        endLineNo= Integer.parseInt(StringUtils.substringAfter(newFileRange,","));
+                    }
 
 
 
 
-                        //checking whether the line belongs to that line range group
-                        if((tempStartingLineNo<=startingLineNo) &&(tempEndingLineNo>=startingLineNo)){
-                            // so the relevant startingLineNo belongs in this line range in other words in this JSONObject
-
-
-                            if(gettingPr==false){
-                                long age =(Long)rangeJSONObject.get("age");
+                    Map <Long,ArrayList<Integer>> mapForStoringAgeAndIndex= new HashMap<Long, ArrayList<Integer>> ();
 
 
 
-                                // storing the age field with relevant index of the JSONObject
-                                mapForStoringAgeAndIndex.putIfAbsent(age, new ArrayList<Integer>());
-                                if(!mapForStoringAgeAndIndex.get(age).contains(i)){
-                                    mapForStoringAgeAndIndex.get(age).add(i);   // adding if the index is not present in the array list for the relevant age
+
+                    //checking line by line by iterating the startinLineNo
+
+                    while(endLineNo>=startingLineNo){
+                        //running through the rangeJSONArray
+
+                        for(int i=0; i<rangeJSONArray.size();i++){
+
+                            JSONObject rangeJSONObject= (JSONObject) rangeJSONArray.get(i);
+
+                            long tempStartingLineNo= (Long)rangeJSONObject.get("startingLine");
+                            long tempEndingLineNo=(Long)rangeJSONObject.get("endingLine");
+
+
+
+
+                            //checking whether the line belongs to that line range group
+                            if((tempStartingLineNo<=startingLineNo) &&(tempEndingLineNo>=startingLineNo)){
+                                // so the relevant startingLineNo belongs in this line range in other words in this JSONObject
+
+
+                                if(gettingPr==false){
+                                    long age =(Long)rangeJSONObject.get("age");
+
+
+
+                                    // storing the age field with relevant index of the JSONObject
+                                    mapForStoringAgeAndIndex.putIfAbsent(age, new ArrayList<Integer>());
+                                    if(!mapForStoringAgeAndIndex.get(age).contains(i)){
+                                        mapForStoringAgeAndIndex.get(age).add(i);   // adding if the index is not present in the array list for the relevant age
+                                    }
+
                                 }
+                                else{
+                                    //for saving the author names of commiters
+                                    JSONObject commitJSONObject= (JSONObject) rangeJSONObject.get("commit");
+
+                                    JSONObject authorJSONObject= (JSONObject) commitJSONObject.get("author");
+                                    String nameOfTheAuthor= (String) authorJSONObject.get("name");
+                                    authorNames.add(nameOfTheAuthor);       // authors are added to the Set
+
+                                    String urlOfCommit= (String)commitJSONObject.get("url");
+                                    String commitHashForPRReview= StringUtils.substringAfter(urlOfCommit,"commit/");
+
+
+
+
+
+
+
+
+
+                                }
+
+
+
+
+
+
 
                             }
                             else{
-                                //for saving the author names of commiters
-                                JSONObject commitJSONObject= (JSONObject) rangeJSONObject.get("commit");
-                                
-                                JSONObject authorJSONObject= (JSONObject) commitJSONObject.get("author");
-                                String nameOfTheAuthor= (String) authorJSONObject.get("name");
-                                authorNames.add(nameOfTheAuthor);
-                                
-
-
-
+                                continue;
                             }
 
 
 
 
 
-
-
-                        }
-                        else{
-                            continue;
                         }
 
 
+
+                        startingLineNo++;   // to check for other line numbers
 
 
 
                     }
 
+                    //---------------------------for the above line range getting the lastest commit which modified the lines--------------------------
+
+                    if(gettingPr==false){
+                        //converting the map into a treeMap to get it ordered
+
+                        TreeMap <Long, ArrayList<Integer>> treeMap= new TreeMap<>(mapForStoringAgeAndIndex);
+                        Long minimumKeyOfMapForStoringAgeAndIndex= treeMap.firstKey(); // getting the minimum key
+
+                        //                     getting the relevant JSONObject indexes which consists of the recent commit with in the relevant line range
+                        ArrayList<Integer> indexesOfJsonObjectForRecentCommit= mapForStoringAgeAndIndex.get(minimumKeyOfMapForStoringAgeAndIndex);
+
+                        Iterator indexesOfJsonObjectForRecentCommitIterator = indexesOfJsonObjectForRecentCommit.iterator();
+
+                        while (indexesOfJsonObjectForRecentCommitIterator.hasNext()){
+                            int index= (int)indexesOfJsonObjectForRecentCommitIterator.next();
 
 
-                    startingLineNo++;   // to check for other line numbers
+                            // this is the range where the code gets actually modified
+
+                            JSONObject rangeJSONObject= (JSONObject) rangeJSONArray.get(index);
+                            JSONObject commitJSONObject= (JSONObject) rangeJSONObject.get("commit");
+                            JSONObject historyJSONObject= (JSONObject) commitJSONObject.get("history");
+                            JSONArray edgesJSONArray =(JSONArray) historyJSONObject.get("edges");
+
+                            //getting the second json object from the array as it contain the commit of the parent which modified the above line range
+                            JSONObject edgeJSONObject= (JSONObject) edgesJSONArray.get(1);
+
+                            JSONObject nodeJSONObject=(JSONObject) edgeJSONObject.get("node");
+
+
+                            String urlOfTheParentCommit= (String) nodeJSONObject.get("url");       // this contain the URL of the parent commit
+
+                            String commitHash=(String)StringUtils.substringAfter(urlOfTheParentCommit, "commit/");
+
+
+                            commitHashesOfTheParent.add(commitHash);
 
 
 
-                }
-
-                //---------------------------for the above line range getting the lastest commit which modified the lines--------------------------
-
-                if(gettingPr==false){
-                    //converting the map into a treeMap to get it ordered
-
-                    TreeMap <Long, ArrayList<Integer>> treeMap= new TreeMap<>(mapForStoringAgeAndIndex);
-                    Long minimumKeyOfMapForStoringAgeAndIndex= treeMap.firstKey(); // getting the minimum key
-
-                    //                     getting the relevant JSONObject indexes which consists of the recent commit with in the relevant line range
-                    ArrayList<Integer> indexesOfJsonObjectForRecentCommit= mapForStoringAgeAndIndex.get(minimumKeyOfMapForStoringAgeAndIndex);
-
-                    Iterator indexesOfJsonObjectForRecentCommitIterator = indexesOfJsonObjectForRecentCommit.iterator();
-
-                    while (indexesOfJsonObjectForRecentCommitIterator.hasNext()){
-                        int index= (int)indexesOfJsonObjectForRecentCommitIterator.next();
 
 
-                        // this is the range where the code gets actually modified
+                        }
 
-                        JSONObject rangeJSONObject= (JSONObject) rangeJSONArray.get(index);
-                        JSONObject commitJSONObject= (JSONObject) rangeJSONObject.get("commit");
-                        JSONObject historyJSONObject= (JSONObject) commitJSONObject.get("history");
-                        JSONArray edgesJSONArray =(JSONArray) historyJSONObject.get("edges");
+                    }
 
-                        //getting the second json object from the array as it contain the commit of the parent which modified the above line range
-                        JSONObject edgeJSONObject= (JSONObject) edgesJSONArray.get(1);
-
-                        JSONObject nodeJSONObject=(JSONObject) edgeJSONObject.get("node");
-
-
-                        String urlOfTheParentCommit= (String) nodeJSONObject.get("url");       // this contain the URL of the parent commit
-
-                        String commitHash=(String)StringUtils.substringAfter(urlOfTheParentCommit, "commit/");
-
-
-                        commitHashesOfTheParent.add(commitHash);
-
-
+                    else{
 
 
 
                     }
 
+                    // parent commits for whole ranges of the current file are added to the commitHashesOfTheParent Set
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    //                    // the programms starts to check for the other line range of the same file, if a next range exists (git always keep a new line range for each modification)
+
+
                 }
-
-                else{
-                    
-                    
-                    
-                }
-
-                // parent commits for whole ranges of the current file are added to the commitHashesOfTheParent Set
-
-
-
-
-
-
-
-
-
-
-
-
-
-                //                    // the programms starts to check for the other line range of the same file, if a next range exists (git always keep a new line range for each modification)
-
-
-
             }
 
 
