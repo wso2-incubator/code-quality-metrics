@@ -12,7 +12,8 @@ public class App
         //       passing the PMT token
        
 //        ---------------------------------------Code Main -------------
-        GettingBlameCommit object= new GettingBlameCommit();
+//        GettingBlameCommit object= new GettingBlameCommit();
+        GettingReviewers object= new GettingReviewers();
 
         object.setToken("PMT");
         object.setData();
@@ -25,8 +26,13 @@ public class App
 
         
 //        System.out.println("Reviews on Pull requests");
-      //  GettingReviewers gettingReviewersObject= new GettingReviewers();
-     //   gettingReviewersObject.findingReviewers();
+//        GettingReviewers gettingReviewersObject= new GettingReviewers();
+        object.findingReviewers();
+        
+        
+        
+        
+        
         
         
         

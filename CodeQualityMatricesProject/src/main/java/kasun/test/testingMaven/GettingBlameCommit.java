@@ -69,7 +69,7 @@ public class GettingBlameCommit extends CallingAPI {
     // this can be taken as repo vice
     Set <String> authorNames= new HashSet<String>();    //as the authors are for all the commits that exists in the relevant patch
 
-    Set <String> commitHashObtainedForPRReview= new HashSet<String>();  //  relevant commits in old file that need to find the PR Reviewers
+   protected Set <String> commitHashObtainedForPRReview= new HashSet<String>();  //  relevant commits in old file that need to find the PR Reviewers
 
 
 
@@ -115,8 +115,8 @@ public class GettingBlameCommit extends CallingAPI {
             saveRepoNamesInAnArray(commitHash);
 
         }
-        
-       
+
+
 
 
 
@@ -163,7 +163,7 @@ public class GettingBlameCommit extends CallingAPI {
                 //clearing all the data in the current fileNames and lineRangesChanged arraylists for each repository
                 fileNames.clear();
                 lineRangesChanged.clear();
-//                authorNames.clear();
+                //                authorNames.clear();
 
 
                 callingToGetFilesChanged(repoLocation[i],commitHash); 
@@ -206,9 +206,9 @@ public class GettingBlameCommit extends CallingAPI {
         // for printing the author names.
         System.out.println(authorNames);
         System.out.println(commitHashObtainedForPRReview);
-       
 
-        
+
+
 
 
     }
@@ -480,7 +480,7 @@ public class GettingBlameCommit extends CallingAPI {
 
             bufferedWritter.write(stringBuilder.toString());
 
-//            System.out.println(stringBuilder.toString());
+            //            System.out.println(stringBuilder.toString());
         }
         catch(Exception e){
             e.printStackTrace();
@@ -556,10 +556,10 @@ public class GettingBlameCommit extends CallingAPI {
 
                 String oldFileRange=StringUtils.substringBefore(lineRanges,"/");
                 String newFileRange= StringUtils.substringAfter(lineRanges,"/");
-                
+
                 // need to skip the newly created files from taking the blame
                 if(oldFileRange.equals("0,0")){
-                    
+
                     continue;   
 
                 }
