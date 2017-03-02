@@ -245,7 +245,7 @@ public class GettingReviewers extends GettingBlameCommit {
     
     public void printReviewUsers(){
         System.out.println("Reviewed and approved users of the bug lines: "+ approvedReviewers);
-        System.out.println("Reviewewd and commented users on bug lines: "+commentedReviewers);
+        System.out.println("Reviewed and commented users on bug lines: "+commentedReviewers);
         
     }
 

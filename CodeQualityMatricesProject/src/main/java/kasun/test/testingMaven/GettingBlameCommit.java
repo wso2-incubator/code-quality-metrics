@@ -563,6 +563,7 @@ public class GettingBlameCommit extends CallingAPI {
                     continue;   
 
                 }
+                //new change
                 else{
 
                     if(gettingPr==true){
@@ -584,7 +585,7 @@ public class GettingBlameCommit extends CallingAPI {
 
 
 
-
+                    // as it is required to create a new Map for finding the recent commit for each line range 
                     Map <Long,ArrayList<Integer>> mapForStoringAgeAndIndex= new HashMap<Long, ArrayList<Integer>> ();
 
 
@@ -648,7 +649,7 @@ public class GettingBlameCommit extends CallingAPI {
 
 
 
-
+                                break;
 
                             }
                             else{
@@ -775,7 +776,7 @@ public class GettingBlameCommit extends CallingAPI {
             try{
 
                 String locationOfTheSavedFile= callingGraphQl(graphqlApiJsonObject,fileName, parentCommitHashForCallingGraphQl,repoLocation);
-                readingTheBlameReceivedForAFileName(locationOfTheSavedFile, fileName, owner, repositoryName, repoLocation, arrayListOfRelevantChangedLines,true);
+                 readingTheBlameReceivedForAFileName(locationOfTheSavedFile, fileName, owner, repositoryName, repoLocation, arrayListOfRelevantChangedLines,true);
 
 
             }

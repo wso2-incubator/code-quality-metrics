@@ -79,7 +79,7 @@ public class CallingAPI {
     }
 
     public void setToken(String tokenFor) {
-        System.out.println("Enter the token for "+ tokenFor);
+        System.out.println("\nEnter the token for "+ tokenFor);
 
         this.token= user_input.next();
 
@@ -105,7 +105,7 @@ public class CallingAPI {
     // =============== for setting the internal PMT API URL ============================================================
     public void setData() throws IOException{
 
-        System.out.println("Enter the patch id");
+        System.out.println("\nEnter the patch id");
 
         setPatchId(user_input.next());
 
@@ -163,26 +163,128 @@ public class CallingAPI {
 
             httpResponse=httpclient.execute(httpGet);
             int responseCode= httpResponse.getStatusLine().getStatusCode();     // to get the response code
+            //403
 
-            //System.out.println("Response Code: "+responseCode);
+            switch(responseCode){
 
-            bufferedReader= new BufferedReader(new InputStreamReader (httpResponse.getEntity().getContent()));
+            case 200:
+                //System.out.println("Response Code: "+responseCode);
 
-            StringBuilder stringBuilder= new StringBuilder();
-            String line;
-            while((line=bufferedReader.readLine())!=null){
-                stringBuilder.append(line);
+                bufferedReader= new BufferedReader(new InputStreamReader (httpResponse.getEntity().getContent()));
+
+                StringBuilder stringBuilder= new StringBuilder();
+                String line;
+                while((line=bufferedReader.readLine())!=null){
+                    stringBuilder.append(line);
+
+                }
+
+                //System.out.println("Recieved JSON "+stringBuilder.toString());
+
+                //------- writing the content received from the response to the given file location------------
+
+                File fileLocator= new File(location+file);
+                fileLocator.getParentFile().mkdirs();
+                bufferedWriter= new BufferedWriter(new FileWriter (fileLocator));
+                bufferedWriter.write(stringBuilder.toString());
+
+                break;
+            case 401:
+                // to handle Response code 401: Unauthorized 
+                System.err.print("Response code 401 : Git hub access token is invalid");
+                
+                
+                try {
+                    
+                    Thread.sleep(100);
+                    runningTheAppAgain();
+                } catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                
+
+                break;
+
+            case 403:
+                // to handle invalid credentials
+                System.err.println("Response Code:403 Invalid Credentials, insert a correct token");
+                try {
+                  
+                    Thread.sleep(100);
+                    runningTheAppAgain();
+                } catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                
+
+                break;
+
+            case 404:
+                System.err.println("Reponse Code 404: Patch not found, enter a valid patch");
+                try{
+                    Thread.sleep(100);
+                    runningTheAppAgain();
+                    
+                }
+                catch(InterruptedException e){
+                    e.printStackTrace();
+                }
+                
+
+                break;
+
+
+
+            default :
+
 
             }
-
-            //System.out.println("Recieved JSON "+stringBuilder.toString());
-
-            //------- writing the content received from the response to the given file location------------
-
-            File fileLocator= new File(location+file);
-            fileLocator.getParentFile().mkdirs();
-            bufferedWriter= new BufferedWriter(new FileWriter (fileLocator));
-            bufferedWriter.write(stringBuilder.toString());
+            //            if(responseCode==200){
+            //
+            //
+            //                //System.out.println("Response Code: "+responseCode);
+            //
+            //                bufferedReader= new BufferedReader(new InputStreamReader (httpResponse.getEntity().getContent()));
+            //
+            //                StringBuilder stringBuilder= new StringBuilder();
+            //                String line;
+            //                while((line=bufferedReader.readLine())!=null){
+            //                    stringBuilder.append(line);
+            //
+            //                }
+            //
+            //                //System.out.println("Recieved JSON "+stringBuilder.toString());
+            //
+            //                //------- writing the content received from the response to the given file location------------
+            //
+            //                File fileLocator= new File(location+file);
+            //                fileLocator.getParentFile().mkdirs();
+            //                bufferedWriter= new BufferedWriter(new FileWriter (fileLocator));
+            //                bufferedWriter.write(stringBuilder.toString());
+            //
+            //
+            //
+            //
+            //
+            //            }else if (responseCode==403){
+            //                // to handle invalid credentials
+            //                try {
+            //                    System.err.println("Invalid Credentials, insert a correct token");
+            //                    App.main(null);
+            //                } catch (Exception e) {
+            //                    // TODO Auto-generated catch block
+            //                    e.printStackTrace();
+            //                }
+            //
+            //            }
+            //            else{
+            //                // to handle other inputs
+            //
+            //
+            //
+            //            }
         } 
 
         catch (ClientProtocolException e) {
@@ -212,6 +314,19 @@ public class CallingAPI {
 
 
         }
+    }
+
+    // =============== running the programm again =============================
+    public void runningTheAppAgain(){
+
+        try {
+            App.main(null);
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+
     }
 
 
