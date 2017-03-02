@@ -69,7 +69,7 @@ public class GettingBlameCommit extends CallingAPI {
     // this can be taken as repo vice
     Set <String> authorNames= new HashSet<String>();    //as the authors are for all the commits that exists in the relevant patch
 
-   protected Set <String> commitHashObtainedForPRReview= new HashSet<String>();  //  relevant commits in old file that need to find the PR Reviewers
+    protected Set <String> commitHashObtainedForPRReview= new HashSet<String>();  //  relevant commits in old file that need to find the PR Reviewers
 
 
 
@@ -101,7 +101,11 @@ public class GettingBlameCommit extends CallingAPI {
 
 
 
-    //================ obtaining PR for each commit and saving them in a file ===================================
+
+    /**
+     * obtaining PR for each commit and saving them in a file
+     * @throws IOException
+     */
     public void obtainingRepoNamesForCommitHashes() throws IOException{
 
 
@@ -122,8 +126,10 @@ public class GettingBlameCommit extends CallingAPI {
 
     }
 
-    //================================= saving the  Repo Names in the array and calling to Get files content========================================
-
+    /**
+     * saving the  Repo Names in the array and calling to Get files content
+     * @param commitHash
+     */
     public void saveRepoNamesInAnArray(String commitHash){
         try{
 
@@ -214,8 +220,12 @@ public class GettingBlameCommit extends CallingAPI {
     }
 
 
-    //============================== calling Single commit API to get files changed in a commit=======================
 
+    /**
+     * calling Single commit API to get files changed in a commit
+     * @param repoLocation
+     * @param commitHash
+     */
     public void callingToGetFilesChanged(String repoLocation, String commitHash){
 
         //        setting the URL for calling github single commit API
@@ -244,8 +254,10 @@ public class GettingBlameCommit extends CallingAPI {
 
     }
 
-    //    ======saving relevant file names and their edit line numbers =================================
-
+    /**
+     * saving relevant file names and their edit line numbers
+     * @param savingLocation
+     */
     public void savingRelaventFileNamesAndEditLineNumbers(String savingLocation){
 
         //read the json output
@@ -359,7 +371,11 @@ public class GettingBlameCommit extends CallingAPI {
 
     }
 
-    //============================ iterating and calling graphql==================================================
+    /**
+     * iterating and calling graphql
+     * @param repoLocation
+     * @param commitHash
+     */
     public void iteratingOver(String repoLocation, String commitHash){
 
         // filtering the owner and the repository name from the repoLocation
@@ -414,8 +430,17 @@ public class GettingBlameCommit extends CallingAPI {
 
 
     }
-
-
+    
+    
+    /**
+     * Calling the github graphQL API
+     * @param queryObject
+     * @param fileName
+     * @param commitHash
+     * @param repoLocation
+     * @return
+     * @throws IOException
+     */
     public String callingGraphQl(JSONObject queryObject,String fileName,String commitHash,String repoLocation) throws IOException{
 
         CloseableHttpClient client= null;
@@ -525,6 +550,17 @@ public class GettingBlameCommit extends CallingAPI {
     //    
     //    } 
 
+    
+    /**
+     * Reading the blame received for a given file name
+     * @param locationOfTheSavedFile
+     * @param fileName
+     * @param owner
+     * @param repositoryName
+     * @param repoLocation
+     * @param arrayListOfRelevantChangedLines
+     * @param gettingPr
+     */
     public void readingTheBlameReceivedForAFileName(String locationOfTheSavedFile,String fileName,String owner,String repositoryName,String repoLocation,ArrayList<String> arrayListOfRelevantChangedLines,boolean gettingPr){
 
 
@@ -759,6 +795,15 @@ public class GettingBlameCommit extends CallingAPI {
         }
     }
 
+    
+    /**
+     * Finding the authors of the commits
+     * @param owner
+     * @param repositoryName
+     * @param fileName
+     * @param repoLocation
+     * @param arrayListOfRelevantChangedLines
+     */
     public void iteratingOverForFindingAuthors(String owner,String repositoryName,String fileName,String repoLocation,ArrayList<String> arrayListOfRelevantChangedLines){
 
 
@@ -776,7 +821,7 @@ public class GettingBlameCommit extends CallingAPI {
             try{
 
                 String locationOfTheSavedFile= callingGraphQl(graphqlApiJsonObject,fileName, parentCommitHashForCallingGraphQl,repoLocation);
-                 readingTheBlameReceivedForAFileName(locationOfTheSavedFile, fileName, owner, repositoryName, repoLocation, arrayListOfRelevantChangedLines,true);
+                readingTheBlameReceivedForAFileName(locationOfTheSavedFile, fileName, owner, repositoryName, repoLocation, arrayListOfRelevantChangedLines,true);
 
 
             }

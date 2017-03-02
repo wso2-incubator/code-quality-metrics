@@ -100,9 +100,11 @@ public class CallingAPI {
         urlForObtainingCommitHashes = uRL;
     }
 
-
-
-    // =============== for setting the internal PMT API URL ============================================================
+    
+    
+    /**
+     * for setting the internal PMT API URL
+     */
     public void setData() throws IOException{
 
         System.out.println("\nEnter the patch id");
@@ -116,7 +118,16 @@ public class CallingAPI {
     }
 
 
-    //=========== calling the relevant API and saving the output to a file===============================================
+    
+    /**
+     * calling the relevant API and saving the output to a file
+     * @param URL url of the REST API
+     * @param file location to save the output
+     * @param requireToken 
+     * @param requireCommitHeader
+     * @param requireReviewHeader
+     * @throws IOException
+     */
 
     public void  callingTheAPI(String URL, String file,boolean requireToken,boolean requireCommitHeader,boolean requireReviewHeader) throws IOException{
 
@@ -192,17 +203,17 @@ public class CallingAPI {
             case 401:
                 // to handle Response code 401: Unauthorized 
                 System.err.print("Response code 401 : Git hub access token is invalid");
-                
-                
+
+
                 try {
-                    
+
                     Thread.sleep(100);
                     runningTheAppAgain();
                 } catch (InterruptedException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
-                
+
 
                 break;
 
@@ -210,14 +221,14 @@ public class CallingAPI {
                 // to handle invalid credentials
                 System.err.println("Response Code:403 Invalid Credentials, insert a correct token");
                 try {
-                  
+
                     Thread.sleep(100);
                     runningTheAppAgain();
                 } catch (InterruptedException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
-                
+
 
                 break;
 
@@ -226,12 +237,12 @@ public class CallingAPI {
                 try{
                     Thread.sleep(100);
                     runningTheAppAgain();
-                    
+
                 }
                 catch(InterruptedException e){
                     e.printStackTrace();
                 }
-                
+
 
                 break;
 
@@ -316,7 +327,10 @@ public class CallingAPI {
         }
     }
 
-    // =============== running the programm again =============================
+   /**
+    * running the programm again
+    * 
+    */
     public void runningTheAppAgain(){
 
         try {
@@ -330,9 +344,15 @@ public class CallingAPI {
     }
 
 
-    //  ===================== getting the commit IDs from the above saved file ============================================
+   
 
+    /**
+     * getting the commit IDs from the above saved file
+     */
     public void getThePublicGitCommitId(){
+
+
+
         try{
             JSONArray jsonArray= (JSONArray)parser.parse(new FileReader(location+jsonOutPutFileOfCommits));
 
@@ -356,19 +376,23 @@ public class CallingAPI {
 
                     }
 
+                    System.out.println("The commit Ids are");
+
+
+                    //            for printing all the commits ID associated with a patch
+                    for (String tmp: patchInformation_svnRevisionpublic){
+                        System.out.println(tmp);
+                    }
+                    System.out.println();
+
+
                     break;
                 }
 
+
             }
 
-            System.out.println("The commit Ids are");
 
-
-            //            for printing all the commits ID associated with a patch
-            for (String tmp: patchInformation_svnRevisionpublic){
-                System.out.println(tmp);
-            }
-            System.out.println();
 
         }
         catch(FileNotFoundException e){

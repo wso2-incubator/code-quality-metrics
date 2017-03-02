@@ -78,8 +78,10 @@ public class GettingReviewers extends GettingBlameCommit {
     // map for storing the pull requests numbers against their repository 
     Map <String, Set<Long>>mapContainingPRNoAgainstRepoName= new HashMap<String,Set<Long>>();
 
-    //================================= for finding the reviewers of each commit and storing them in array list===============
 
+    /**
+     * for finding the reviewers of each commit and storing them in array list
+     */
     public void findingReviewers(){
 
         Iterator  commitHashObtainedForPRReviewIterator= commitHashObtainedForPRReview.iterator(); 
@@ -109,7 +111,11 @@ public class GettingReviewers extends GettingBlameCommit {
 
     }
 
-    //====================== reading the search API output and saving the PR number with the repo name in a map ==============================
+
+    /**
+     * reading the search API output and saving the PR number with the repo name in a map
+     * @param fileName
+     */
 
     public void savingPrNumberAndRepoName(String fileName){
 
@@ -155,6 +161,9 @@ public class GettingReviewers extends GettingBlameCommit {
 
     }
 
+    /**
+     * Saving the reviewers of the pull requests to a list
+     */
     public void savingReviewersToList(){
 
         for(Map.Entry m : mapContainingPRNoAgainstRepoName.entrySet()){
@@ -185,15 +194,19 @@ public class GettingReviewers extends GettingBlameCommit {
 
 
         }
-        
+
         // printing the list of reviewers of pull requests
         printReviewUsers();
 
 
     }
 
-
-
+    /**
+     * Reading the output received from the review API
+     * @param locationForSavingOutputFile
+     * @param productLocation
+     * @param prNumber
+     */
     public void readingTheReviewOutJSON(String locationForSavingOutputFile,String productLocation,Long prNumber){
         try {
 
@@ -225,7 +238,7 @@ public class GettingReviewers extends GettingBlameCommit {
             else{
                 System.out.println("There are no records of reviews for pull request: "+prNumber+" on "+productLocation+" repository");
             }
-            
+
 
         } catch (FileNotFoundException e) {
             // TODO Auto-generated catch block
@@ -242,11 +255,14 @@ public class GettingReviewers extends GettingBlameCommit {
 
 
     }
-    
+
+    /**
+     * Print the list of reviewers
+     */
     public void printReviewUsers(){
         System.out.println("Reviewed and approved users of the bug lines: "+ approvedReviewers);
         System.out.println("Reviewed and commented users on bug lines: "+commentedReviewers);
-        
+
     }
 
 
