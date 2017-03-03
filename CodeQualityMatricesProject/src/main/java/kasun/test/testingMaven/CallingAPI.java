@@ -136,22 +136,6 @@ public class CallingAPI {
         CloseableHttpResponse httpResponse= null;
         BufferedWriter bufferedWriter= null;
 
-
-        //================ To do: 
-        //                try(BufferedReader bufferedReader= new BufferedReader(new InputStreamReader (httpResponse.getEntity().getContent()))){
-        //                    StringBuilder stringBuilder= new StringBuilder();
-        //                    String line;
-        //                    while((line=bufferedReader.readLine())!=null){
-        //                        stringBuilder.append(line);
-        //        
-        //                    }
-        //        
-        //                    System.out.println(stringBuilder.toString()); 
-        //        
-        //        
-        //                }
-
-
         try {
             httpclient = HttpClients.createDefault();
             HttpGet httpGet= new HttpGet(URL);
@@ -174,12 +158,12 @@ public class CallingAPI {
 
             httpResponse=httpclient.execute(httpGet);
             int responseCode= httpResponse.getStatusLine().getStatusCode();     // to get the response code
-            //403
+           
 
             switch(responseCode){
 
             case 200:
-                //System.out.println("Response Code: "+responseCode);
+               //success
 
                 bufferedReader= new BufferedReader(new InputStreamReader (httpResponse.getEntity().getContent()));
 
@@ -190,7 +174,7 @@ public class CallingAPI {
 
                 }
 
-                //System.out.println("Recieved JSON "+stringBuilder.toString());
+               
 
                 //------- writing the content received from the response to the given file location------------
 
@@ -233,6 +217,7 @@ public class CallingAPI {
                 break;
 
             case 404:
+                // to handle invalid patch
                 System.err.println("Reponse Code 404: Patch not found, enter a valid patch");
                 try{
                     Thread.sleep(100);
@@ -252,50 +237,7 @@ public class CallingAPI {
 
 
             }
-            //            if(responseCode==200){
-            //
-            //
-            //                //System.out.println("Response Code: "+responseCode);
-            //
-            //                bufferedReader= new BufferedReader(new InputStreamReader (httpResponse.getEntity().getContent()));
-            //
-            //                StringBuilder stringBuilder= new StringBuilder();
-            //                String line;
-            //                while((line=bufferedReader.readLine())!=null){
-            //                    stringBuilder.append(line);
-            //
-            //                }
-            //
-            //                //System.out.println("Recieved JSON "+stringBuilder.toString());
-            //
-            //                //------- writing the content received from the response to the given file location------------
-            //
-            //                File fileLocator= new File(location+file);
-            //                fileLocator.getParentFile().mkdirs();
-            //                bufferedWriter= new BufferedWriter(new FileWriter (fileLocator));
-            //                bufferedWriter.write(stringBuilder.toString());
-            //
-            //
-            //
-            //
-            //
-            //            }else if (responseCode==403){
-            //                // to handle invalid credentials
-            //                try {
-            //                    System.err.println("Invalid Credentials, insert a correct token");
-            //                    App.main(null);
-            //                } catch (Exception e) {
-            //                    // TODO Auto-generated catch block
-            //                    e.printStackTrace();
-            //                }
-            //
-            //            }
-            //            else{
-            //                // to handle other inputs
-            //
-            //
-            //
-            //            }
+           
         } 
 
         catch (ClientProtocolException e) {
