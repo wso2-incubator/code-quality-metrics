@@ -18,7 +18,7 @@
 
 
 
-package kasun.test.testingMaven;
+package com.wso2.code.quality.matrices;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -36,26 +36,21 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.Set;
-import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-public class GettingBlameCommit extends CallingAPI {
+public class BlameCommit extends CallingAPI {
 
     private String jsonOutPutFileOfSearchCommitAPI="jsonOutPutFileOfSearchCommitAPI.json";
     private String urlForObtainingCommits,urlForGetingFilesChanged;

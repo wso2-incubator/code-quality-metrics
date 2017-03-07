@@ -1,17 +1,14 @@
-package kasun.test.testingMaven;
+package com.wso2.code.quality.matrices;
 
 
-import java.io.IOException;
-
-
-public class App 
+public class MainClass
 {
     public static void main( String[] args ) throws Exception
     {
 
         //       passing the PMT token
       
-        GettingReviewers object= new GettingReviewers();
+        Reviewers object= new Reviewers();
 
         object.setToken("PMT");
         object.setData();

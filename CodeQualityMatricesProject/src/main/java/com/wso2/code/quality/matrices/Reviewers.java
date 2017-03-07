@@ -18,7 +18,7 @@
 
 
 
-package kasun.test.testingMaven;
+package com.wso2.code.quality.matrices;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -34,7 +34,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
-public class GettingReviewers extends GettingBlameCommit {
+public class Reviewers extends BlameCommit {
 
     String searchPullReqeustAPIUrl; 
     String locationOfSavingSearchApiOutputs;

@@ -18,7 +18,7 @@
 
 
 
-package kasun.test.testingMaven;
+package com.wso2.code.quality.matrices;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -27,27 +27,18 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.omg.CosNaming.NamingContextExtPackage.AddressHelper;
 
 public class CallingAPI {
 
@@ -276,7 +267,7 @@ public class CallingAPI {
     public void runningTheAppAgain(){
 
         try {
-            App.main(null);
+            MainClass.main(null);
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
