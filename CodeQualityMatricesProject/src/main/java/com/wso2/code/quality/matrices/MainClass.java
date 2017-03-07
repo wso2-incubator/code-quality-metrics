@@ -1,28 +1,26 @@
 package com.wso2.code.quality.matrices;
 
 
-public class MainClass
-{
-    public static void main( String[] args ) throws Exception
-    {
+public class MainClass {
+    public static void main(String[] args) throws Exception {
 
         //       passing the PMT token
-      
-        Reviewers object= new Reviewers();
+
+        CallingAPI object = new CallingAPI();
 
         object.setToken("PMT");
-        object.setData();
+        String[] commitsInTheGivenPatch = object.setData();
 
-        object.getThePublicGitCommitId();
-        
+        //object.getThePublicGitCommitId();
+
         //        passing the github token
         object.setToken("Github");
 
-        object.obtainingRepoNamesForCommitHashes();
+      //  object.obtainingRepoNamesForCommitHashes();
 
-        
-        object.findingReviewers();
-            
-        
+
+      //  object.findingReviewers();
+
+
     }
 }
