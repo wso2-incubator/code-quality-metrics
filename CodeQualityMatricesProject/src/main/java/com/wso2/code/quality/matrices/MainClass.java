@@ -1,9 +1,7 @@
 package com.wso2.code.quality.matrices;
 
 
-import com.sun.org.apache.xpath.internal.SourceTree;
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.util.Scanner;
 import java.util.Set;
@@ -20,8 +18,8 @@ public class MainClass {
         String pmtUrl = "http://umt.private.wso2.com:9765/codequalitymatricesapi/1.0.0//properties?path=/_system/governance/patchs/" + patchId;
 
 
-        CallingAPI callingAPI = new CallingAPI();
-        JSONArray jsonArray = (JSONArray) callingAPI.callingTheAPI(pmtUrl, null, pmtToken, false, false);
+        RestApiCaller restApiCaller = new RestApiCaller();
+        JSONArray jsonArray = (JSONArray) restApiCaller.callingTheAPI(pmtUrl, pmtToken, false, false);
 
 
         Pmt pmt = new Pmt();
@@ -33,24 +31,12 @@ public class MainClass {
 
 
         BlameCommit blameCommit = new BlameCommit();
-        Set<String> commitHashObtainedForPRReview = blameCommit.obtainingRepoNamesForCommitHashes(gitHubToken, commitsInTheGivenPatch, callingAPI);
+        Set<String> commitHashObtainedForPRReview = blameCommit.obtainingRepoNamesForCommitHashes(gitHubToken, commitsInTheGivenPatch, restApiCaller);
 
-        Reviewers reviewers= new Reviewers();
-        reviewers.findingReviewers(commitHashObtainedForPRReview,gitHubToken);
-
-        //       passing the PMT token
+        Reviewers reviewers = new Reviewers();
+        reviewers.findingReviewers(commitHashObtainedForPRReview, gitHubToken);
 
 
-        // callingAPI.setToken("PMT");
-//        String[] commitsInTheGivenPatch = callingAPI.setData();
-
-        //callingAPI.getThePublicGitCommitId();
-
-
-        //  callingAPI.obtainingRepoNamesForCommitHashes();
-
-
-        //  callingAPI.findingReviewers();
 
 
     }

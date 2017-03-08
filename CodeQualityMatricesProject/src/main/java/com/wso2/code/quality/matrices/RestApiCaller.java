@@ -20,106 +20,30 @@
 package com.wso2.code.quality.matrices;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Scanner;
 
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.json.JSONTokener;
-//import org.json.simple.JSONArray;
-//import org.json.simple.JSONObject;
 import org.json.JSONObject;
 import org.json.JSONArray;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
-public class CallingAPI {
-
-
-    private String token;
-    private String patchId;
-    private String urlForObtainingCommitHashes, urlForObtainingPRs;
-
-    protected final String location = System.getProperty("user.dir") + "/";           // to save the json output of the API call
-    private String jsonOutPutFileOfCommits = "jsonOutPutFileCommits.json";
-    private String jsonOutPutFileOfPRs = "jsonOutPutFilePRs.json";
-
-    private String prHtmlUrlDetails;
-    protected JSONParser parser = new JSONParser();
-    protected String patchInformation_svnRevisionpublic[];        // for saving the commit id of the patch
-
-    protected ArrayList<String> productID = new ArrayList<String>();
-    protected ArrayList<Long> prNumber = new ArrayList<Long>();
-
-
-    Scanner user_input = new Scanner(System.in);
-
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String tokenFor) {
-        System.out.println("\nEnter the token for " + tokenFor);
-
-        this.token = user_input.next();
-
-    }
-
-    public String getPatchId() {
-        return patchId;
-    }
-
-    public void setPatchId(String patchId) {
-        this.patchId = patchId;
-    }
-
-
-    public String getURL() {
-        return urlForObtainingCommitHashes;
-    }
-
-    public void setURL(String uRL) {
-        urlForObtainingCommitHashes = uRL;
-    }
-
-
-    /**
-     * for setting the internal PMT API URL
-     */
-//    public String[] setData() throws IOException {
-//
-//
-//        // as this return a JSONArray
-//        JSONArray jsonArray = (JSONArray) callingTheAPI(urlForObtainingCommitHashes, jsonOutPutFileOfCommits, true, false, false);
-//     //   String[] commitsInTheGivenPatch = getThePublicGitCommitId(jsonArray);
-//        return commitsInTheGivenPatch;
-//    }
-
-
+public class RestApiCaller {
     /**
      * calling the relevant API and saving the output to a file
      *
      * @param URL                 url of the REST API
-     * @param file                location to save the output
      * @param token
      * @param requireCommitHeader
      * @param requireReviewHeader
      * @throws IOException
      */
 
-    public Object callingTheAPI(String URL, String file, String token, boolean requireCommitHeader, boolean requireReviewHeader) throws IOException {
+    public Object callingTheAPI(String URL, String token, boolean requireCommitHeader, boolean requireReviewHeader) throws IOException {
 
         BufferedReader bufferedReader = null;
         CloseableHttpClient httpclient = null;
@@ -147,7 +71,6 @@ public class CallingAPI {
             }
 
 
-
             httpResponse = httpclient.execute(httpGet);
             int responseCode = httpResponse.getStatusLine().getStatusCode();     // to get the response code
 
@@ -167,13 +90,6 @@ public class CallingAPI {
                     }
 
 
-                    //------- writing the content received from the response to the given file location------------
-
-//                File fileLocator= new File(location+file);
-//                fileLocator.getParentFile().mkdirs();
-//                bufferedWriter= new BufferedWriter(new FileWriter (fileLocator));
-//                bufferedWriter.write(stringBuilder.toString());
-
                     // creating a JSON object from the response
                     String JSONText = stringBuilder.toString();
                     Object json = new JSONTokener(JSONText).nextValue();    // gives an object http://stackoverflow.com/questions/14685777/how-to-check-if-response-from-server-is-jsonaobject-or-jsonarray
@@ -190,8 +106,6 @@ public class CallingAPI {
                 case 401:
                     // to handle Response code 401: Unauthorized
                     System.err.print("Response code 401 : Git hub access token is invalid");
-
-
                     try {
 
                         Thread.sleep(100);
@@ -200,8 +114,6 @@ public class CallingAPI {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
-
-
                     break;
 
                 case 403:
@@ -230,15 +142,12 @@ public class CallingAPI {
                         e.printStackTrace();
                     }
 
-
                     break;
-
 
                 default:
 
                     returnedObject = null;
             }
-
         } catch (ClientProtocolException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -246,7 +155,6 @@ public class CallingAPI {
             // TODO Auto-generated catch block
             e.printStackTrace();
         } finally {
-
 
             if (bufferedReader != null) {
                 bufferedReader.close();
@@ -259,7 +167,6 @@ public class CallingAPI {
                 httpclient.close();
             }
 
-
         }
         return returnedObject;
     }
@@ -268,18 +175,13 @@ public class CallingAPI {
      * running the programm again
      */
     public void runningTheAppAgain() {
-
         try {
             MainClass.main(null);
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-
-
     }
-
-
 }
 
 

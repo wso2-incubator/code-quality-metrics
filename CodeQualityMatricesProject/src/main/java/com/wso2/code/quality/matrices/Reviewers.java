@@ -92,7 +92,7 @@ public class Reviewers extends BlameCommit {
 
             // calling the github search API
             try {
-                JSONObject rootJsonObject = (JSONObject) callingTheAPI(getSearchPullReqeustAPI(), getLocationOfSavingSearchApiOutputs(), githubToken, false, true);
+                JSONObject rootJsonObject = (JSONObject) callingTheAPI(getSearchPullReqeustAPI(),githubToken, false, true);
                 // reading thus saved json file
                 savingPrNumberAndRepoName(rootJsonObject);
 
@@ -108,7 +108,6 @@ public class Reviewers extends BlameCommit {
 
         // printing the list of reviewers of pull requests
         printReviewUsers();
-
 
 
     }
@@ -171,7 +170,7 @@ public class Reviewers extends BlameCommit {
 
                 try {
 
-                    JSONArray rootJsonArray = (JSONArray) callingTheAPI(getPullRequestReviewAPIUrl(), locationForSavingOutputFile, githubToken, false, true);
+                    JSONArray rootJsonArray = (JSONArray) callingTheAPI(getPullRequestReviewAPIUrl(), githubToken, false, true);
                     // for reading the output JSON from above and adding the reviewers to the Set
                     readingTheReviewOutJSON(rootJsonArray, productLocation, prNumber);
                 } catch (IOException e) {
@@ -183,7 +182,6 @@ public class Reviewers extends BlameCommit {
 
 
         }
-
 
 
     }
@@ -198,32 +196,28 @@ public class Reviewers extends BlameCommit {
     public void readingTheReviewOutJSON(JSONArray reviewJsonArray, String productLocation, int prNumber) {
 
 
+        if (reviewJsonArray.length() != 0) {
 
-            if (reviewJsonArray.length() != 0) {
+            for (int i = 0; i < reviewJsonArray.length(); i++) {
+                JSONObject reviewJsonObject = (JSONObject) reviewJsonArray.get(i);
+                if ((reviewJsonObject.get("state")).equals("APPROVED")) {
 
-                for (int i = 0; i < reviewJsonArray.length(); i++) {
-                    JSONObject reviewJsonObject = (JSONObject) reviewJsonArray.get(i);
-                    if ((reviewJsonObject.get("state")).equals("APPROVED")) {
+                    JSONObject userJsonObject = (JSONObject) reviewJsonObject.get("user");
+                    String approvedReviwer = (String) userJsonObject.get("login");
+                    approvedReviewers.add(approvedReviwer);         // adding the approved user to the Set
 
-                        JSONObject userJsonObject = (JSONObject) reviewJsonObject.get("user");
-                        String approvedReviwer = (String) userJsonObject.get("login");
-                        approvedReviewers.add(approvedReviwer);         // adding the approved user to the Set
-
-                    } else if ((reviewJsonObject.get("state")).equals("COMMENTED")) {
-                        JSONObject userJsonObject = (JSONObject) reviewJsonObject.get("user");
-                        String commentedReviwer = (String) userJsonObject.get("login");
-                        commentedReviewers.add(commentedReviwer);        // adding the commented user to the Set
-
-                    }
-
+                } else if ((reviewJsonObject.get("state")).equals("COMMENTED")) {
+                    JSONObject userJsonObject = (JSONObject) reviewJsonObject.get("user");
+                    String commentedReviwer = (String) userJsonObject.get("login");
+                    commentedReviewers.add(commentedReviwer);        // adding the commented user to the Set
 
                 }
-            } else {
-                System.out.println("There are no records of reviews for pull request: " + prNumber + " on " + productLocation + " repository");
+
+
             }
-
-
-
+        } else {
+            System.out.println("There are no records of reviews for pull request: " + prNumber + " on " + productLocation + " repository");
+        }
 
 
     }

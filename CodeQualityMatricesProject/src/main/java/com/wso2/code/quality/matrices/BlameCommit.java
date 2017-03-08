@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -43,11 +42,10 @@ import org.apache.http.impl.client.HttpClients;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import org.json.simple.parser.ParseException;
 
-public class BlameCommit extends CallingAPI {
+public class BlameCommit extends RestApiCaller {
 
-    private String jsonOutPutFileOfSearchCommitAPI = "jsonOutPutFileOfSearchCommitAPI.json";
+
     private String urlForObtainingCommits, urlForGetingFilesChanged;
 
     protected ArrayList<String> fileNames = new ArrayList<String>();
@@ -87,7 +85,7 @@ public class BlameCommit extends CallingAPI {
      *
      * @throws IOException
      */
-    public Set obtainingRepoNamesForCommitHashes(String gitHubToken, String[] commitsInTheGivenPatch, CallingAPI callingAPI) throws IOException {
+    public Set obtainingRepoNamesForCommitHashes(String gitHubToken, String[] commitsInTheGivenPatch, RestApiCaller restApiCaller) throws IOException {
 
 
         for (String commitHash : commitsInTheGivenPatch) {
@@ -96,7 +94,7 @@ public class BlameCommit extends CallingAPI {
 
 
             //calling the API calling method
-            JSONObject jsonObject = (JSONObject) callingAPI.callingTheAPI(getUrlForSearchingCommits(), jsonOutPutFileOfSearchCommitAPI, gitHubToken, true, false);
+            JSONObject jsonObject = (JSONObject) restApiCaller.callingTheAPI(getUrlForSearchingCommits(),gitHubToken, true, false);
             saveRepoNamesInAnArray(jsonObject, commitHash, gitHubToken);
 
         }
@@ -173,7 +171,7 @@ public class BlameCommit extends CallingAPI {
         JSONObject rootJsonObject = null;
         //saving the commit details for the commit hash on the relevant repository
         try {
-            rootJsonObject = (JSONObject) callingTheAPI(getUrlForGetingFilesChanged(), null, gitHubToken, false, false);
+            rootJsonObject = (JSONObject) callingTheAPI(getUrlForGetingFilesChanged(),gitHubToken, false, false);
 
         } catch (IOException e) {
             // TODO Auto-generated catch block
@@ -270,8 +268,7 @@ public class BlameCommit extends CallingAPI {
 
             System.out.println("done saving file names and their relevant modification line ranges");
             System.out.println(fileNames);
-            System.out.println(lineRangesChanged+"\n");
-
+            System.out.println(lineRangesChanged + "\n");
 
 
         }
@@ -292,8 +289,6 @@ public class BlameCommit extends CallingAPI {
         String repositoryName = StringUtils.substringAfter(repoLocation, "/");
 
 
-
-
         //        iterating over the fileNames arraylist for the given commit
         Iterator iteratorForFileNames = fileNames.iterator();
 
@@ -309,8 +304,6 @@ public class BlameCommit extends CallingAPI {
             commitHashesOfTheParent = new HashSet<String>();   // for storing the parent commit hashes for all the line ranges of the relevant file
 
             graphqlApiJsonObject.put("query", "{repository(owner:\"" + owner + "\",name:\"" + repositoryName + "\"){object(expression:\"" + commitHash + "\"){ ... on Commit{blame(path:\"" + fileName + "\"){ranges{startingLine endingLine age commit{history(first: 2) { edges { node {  message url } } } author { name email } } } } } } } }");
-
-
 
 
             JSONObject rootJsonObject = null;

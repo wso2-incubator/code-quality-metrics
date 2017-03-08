@@ -20,7 +20,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class Pmt {
-    private String [] patchInformation_svnRevisionpublic;
+    private String[] patchInformation_svnRevisionpublic;
 
 
     /**
@@ -59,12 +59,16 @@ public class Pmt {
                 System.out.println();
 
 
+
                 break;
             }
 
 
         }
-        return patchInformation_svnRevisionpublic;
+        //to prevent from internaal representation by returning referecnce to mutable object
+        String clonedPatchInformation_svnRevisionpublic[]= patchInformation_svnRevisionpublic.clone();
+
+        return clonedPatchInformation_svnRevisionpublic;
 
 
     }
