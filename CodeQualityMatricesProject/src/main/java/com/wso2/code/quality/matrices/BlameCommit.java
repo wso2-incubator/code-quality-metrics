@@ -87,7 +87,7 @@ public class BlameCommit extends CallingAPI {
      *
      * @throws IOException
      */
-    public void obtainingRepoNamesForCommitHashes(String gitHubToken, String[] commitsInTheGivenPatch, CallingAPI callingAPI) throws IOException {
+    public Set obtainingRepoNamesForCommitHashes(String gitHubToken, String[] commitsInTheGivenPatch, CallingAPI callingAPI) throws IOException {
 
 
         for (String commitHash : commitsInTheGivenPatch) {
@@ -101,6 +101,8 @@ public class BlameCommit extends CallingAPI {
 
         }
 
+
+        return commitHashObtainedForPRReview;
 
     }
 

@@ -6,6 +6,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.Scanner;
+import java.util.Set;
 
 public class MainClass {
     public static void main(String[] args) throws Exception {
@@ -32,8 +33,10 @@ public class MainClass {
 
 
         BlameCommit blameCommit = new BlameCommit();
-        blameCommit.obtainingRepoNamesForCommitHashes(gitHubToken, commitsInTheGivenPatch, callingAPI);
+        Set<String> commitHashObtainedForPRReview = blameCommit.obtainingRepoNamesForCommitHashes(gitHubToken, commitsInTheGivenPatch, callingAPI);
 
+        Reviewers reviewers= new Reviewers();
+        reviewers.findingReviewers(commitHashObtainedForPRReview,gitHubToken);
 
         //       passing the PMT token
 

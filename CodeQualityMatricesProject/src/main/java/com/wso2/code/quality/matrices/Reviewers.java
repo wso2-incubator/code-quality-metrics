@@ -17,7 +17,6 @@
  */
 
 
-
 package com.wso2.code.quality.matrices;
 
 import java.io.FileNotFoundException;
@@ -30,18 +29,18 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.json.simple.parser.ParseException;
 
 public class Reviewers extends BlameCommit {
 
-    String searchPullReqeustAPIUrl; 
+    String searchPullReqeustAPIUrl;
     String locationOfSavingSearchApiOutputs;
     String pullRequestReviewAPIUrl;
 
-    Set <String> approvedReviewers= new HashSet<String>();      // to store the reviewed and approved users of the pull requests
-    Set <String> commentedReviewers= new HashSet<String>();     // to store the reviewed and commented users of the pull requests
+    Set<String> approvedReviewers = new HashSet<String>();      // to store the reviewed and approved users of the pull requests
+    Set<String> commentedReviewers = new HashSet<String>();     // to store the reviewed and commented users of the pull requests
 
     public String getSearchPullReqeustAPI() {
         return searchPullReqeustAPIUrl;
@@ -51,7 +50,7 @@ public class Reviewers extends BlameCommit {
     public void setSearchPullReqeustAPI(String commitHashToBeSearched) {
 
 
-        this.searchPullReqeustAPIUrl = "https://api.github.com/search/issues?q="+commitHashToBeSearched;
+        this.searchPullReqeustAPIUrl = "https://api.github.com/search/issues?q=" + commitHashToBeSearched;
     }
 
     public String getLocationOfSavingSearchApiOutputs() {
@@ -61,7 +60,7 @@ public class Reviewers extends BlameCommit {
 
     public void setLocationOfSavingSearchApiOutputs(String commitHashToBeSearched) {
 
-        this.locationOfSavingSearchApiOutputs = "/searchApiOutputs/"+commitHashToBeSearched+".json";
+        this.locationOfSavingSearchApiOutputs = "/searchApiOutputs/" + commitHashToBeSearched + ".json";
     }
 
     public String getPullRequestReviewAPIUrl() {
@@ -69,34 +68,33 @@ public class Reviewers extends BlameCommit {
     }
 
 
-    public void setPullRequestReviewAPIUrl(String repoLocation,Long pullRequestNumber) {
-        this.pullRequestReviewAPIUrl = "https://api.github.com/repos/"+repoLocation+"/pulls/"+pullRequestNumber+"/reviews";
+    public void setPullRequestReviewAPIUrl(String repoLocation, int pullRequestNumber) {
+        this.pullRequestReviewAPIUrl = "https://api.github.com/repos/" + repoLocation + "/pulls/" + pullRequestNumber + "/reviews";
     }
 
 
-
-    // map for storing the pull requests numbers against their repository 
-    Map <String, Set<Long>>mapContainingPRNoAgainstRepoName= new HashMap<String,Set<Long>>();
+    // map for storing the pull requests numbers against their repository
+    Map<String, Set<Integer>> mapContainingPRNoAgainstRepoName = new HashMap<String, Set<Integer>>();
 
 
     /**
      * for finding the reviewers of each commit and storing them in array list
      */
-    public void findingReviewers(){
+    public void findingReviewers(Set<String> commitHashObtainedForPRReview, String githubToken) {
 
-        Iterator  commitHashObtainedForPRReviewIterator= commitHashObtainedForPRReview.iterator(); 
+        Iterator commitHashObtainedForPRReviewIterator = commitHashObtainedForPRReview.iterator();
 
-        while (commitHashObtainedForPRReviewIterator.hasNext()){
+        while (commitHashObtainedForPRReviewIterator.hasNext()) {
 
-            String commitHashForFindingReviewers=(String)commitHashObtainedForPRReviewIterator.next();
+            String commitHashForFindingReviewers = (String) commitHashObtainedForPRReviewIterator.next();
             setSearchPullReqeustAPI(commitHashForFindingReviewers);
             setLocationOfSavingSearchApiOutputs(commitHashForFindingReviewers);
 
             // calling the github search API
             try {
-                callingTheAPI(getSearchPullReqeustAPI(),getLocationOfSavingSearchApiOutputs(),true,false,true);
+                JSONObject rootJsonObject = (JSONObject) callingTheAPI(getSearchPullReqeustAPI(), getLocationOfSavingSearchApiOutputs(), githubToken, false, true);
                 // reading thus saved json file
-                savingPrNumberAndRepoName(getLocationOfSavingSearchApiOutputs());
+                savingPrNumberAndRepoName(rootJsonObject);
 
             } catch (IOException e) {
                 // TODO Auto-generated catch block
@@ -105,8 +103,12 @@ public class Reviewers extends BlameCommit {
 
 
         }
-        System.out.println("Done Mapping"+ mapContainingPRNoAgainstRepoName);
-        savingReviewersToList();
+        System.out.println("Done Mapping" + mapContainingPRNoAgainstRepoName);
+        savingReviewersToList(githubToken);
+
+        // printing the list of reviewers of pull requests
+        printReviewUsers();
+
 
 
     }
@@ -114,49 +116,36 @@ public class Reviewers extends BlameCommit {
 
     /**
      * reading the search API output and saving the PR number with the repo name in a map
-     * @param fileName
+     *
+     * @param rootJsonObject
      */
 
-    public void savingPrNumberAndRepoName(String fileName){
+    public void savingPrNumberAndRepoName(JSONObject rootJsonObject) {
 
-        try {
 
-            JSONObject searchApiJsonObject=(JSONObject)parser.parse(new FileReader(location+fileName));
-            JSONArray itemsJsonArray= (JSONArray)searchApiJsonObject.get("items");
+        JSONArray itemsJsonArray = (JSONArray) rootJsonObject.get("items");
 
-            for(int i=0; i< itemsJsonArray.size();i++){
-                JSONObject prJsonObject= (JSONObject)itemsJsonArray.get(i);
-                // filtering only the closed repositories
-                if(((String)prJsonObject.get("state")).equals("closed")){
+        for (int i = 0; i < itemsJsonArray.length(); i++) {
+            JSONObject prJsonObject = (JSONObject) itemsJsonArray.get(i);
+            // filtering only the closed repositories
+            if (((String) prJsonObject.get("state")).equals("closed")) {
 
-                    String repositoryUrl= (String)prJsonObject.get("repository_url");
-                    String repositoryLocation=StringUtils.substringAfter(repositoryUrl,"https://api.github.com/repos/");
-                    if(repositoryLocation.contains("wso2/")){
-                        // to filter out only the repositories belongs to wso2 
+                String repositoryUrl = (String) prJsonObject.get("repository_url");
+                String repositoryLocation = StringUtils.substringAfter(repositoryUrl, "https://api.github.com/repos/");
+                if (repositoryLocation.contains("wso2/")) {
+                    // to filter out only the repositories belongs to wso2
 
-                        Long pullRequetNumber= (Long)prJsonObject.get("number");
+                    int pullRequetNumber = (int) prJsonObject.get("number");
 
-                        mapContainingPRNoAgainstRepoName.putIfAbsent(repositoryLocation, new HashSet<Long>()); // put the repo name key only if it does not exists in the map
+                    mapContainingPRNoAgainstRepoName.putIfAbsent(repositoryLocation, new HashSet<Integer>()); // put the repo name key only if it does not exists in the map
 
-                        mapContainingPRNoAgainstRepoName.get(repositoryLocation).add(pullRequetNumber);  // since SET is there we do not need to check for availability of the key in the map
-
-                    }
+                    mapContainingPRNoAgainstRepoName.get(repositoryLocation).add(pullRequetNumber);  // since SET is there we do not need to check for availability of the key in the map
 
                 }
 
             }
 
-        } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (ParseException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         }
-
 
 
     }
@@ -164,27 +153,27 @@ public class Reviewers extends BlameCommit {
     /**
      * Saving the reviewers of the pull requests to a list
      */
-    public void savingReviewersToList(){
+    public void savingReviewersToList(String githubToken) {
 
-        for(Map.Entry m : mapContainingPRNoAgainstRepoName.entrySet()){
+        for (Map.Entry m : mapContainingPRNoAgainstRepoName.entrySet()) {
 
-            String productLocation= (String)m.getKey();
+            String productLocation = (String) m.getKey();
 
             @SuppressWarnings("unchecked")
-            Set<Long> prNumbers= (Set<Long>)m.getValue();
+            Set<Long> prNumbers = (Set<Long>) m.getValue();
 
-            Iterator prNumberIterator= prNumbers.iterator();
-            while(prNumberIterator.hasNext()){
-                Long prNumber= (Long)prNumberIterator.next();
+            Iterator prNumberIterator = prNumbers.iterator();
+            while (prNumberIterator.hasNext()) {
+                int prNumber = (int) prNumberIterator.next();
 
-                String locationForSavingOutputFile="/ReviewApiOutputs/"+productLocation+"/ReviewFor"+prNumber+".json";
-                setPullRequestReviewAPIUrl(productLocation,prNumber);
+                String locationForSavingOutputFile = "/ReviewApiOutputs/" + productLocation + "/ReviewFor" + prNumber + ".json";
+                setPullRequestReviewAPIUrl(productLocation, prNumber);
 
                 try {
 
-                    callingTheAPI(getPullRequestReviewAPIUrl(),locationForSavingOutputFile,true, false,true);
+                    JSONArray rootJsonArray = (JSONArray) callingTheAPI(getPullRequestReviewAPIUrl(), locationForSavingOutputFile, githubToken, false, true);
                     // for reading the output JSON from above and adding the reviewers to the Set
-                    readingTheReviewOutJSON(locationForSavingOutputFile,productLocation,prNumber);
+                    readingTheReviewOutJSON(rootJsonArray, productLocation, prNumber);
                 } catch (IOException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -195,61 +184,44 @@ public class Reviewers extends BlameCommit {
 
         }
 
-        // printing the list of reviewers of pull requests
-        printReviewUsers();
 
 
     }
 
     /**
      * Reading the output received from the review API
-     * @param locationForSavingOutputFile
+     *
+     * @param reviewJsonArray
      * @param productLocation
      * @param prNumber
      */
-    public void readingTheReviewOutJSON(String locationForSavingOutputFile,String productLocation,Long prNumber){
-        try {
+    public void readingTheReviewOutJSON(JSONArray reviewJsonArray, String productLocation, int prNumber) {
 
-            JSONArray reviewJsonArray= (JSONArray)parser.parse(new FileReader(location+locationForSavingOutputFile));
 
-            if(reviewJsonArray.size()!=0){
 
-                for(int i=0; i < reviewJsonArray.size();i++){
-                    JSONObject reviewJsonObject= (JSONObject)reviewJsonArray.get(i);
-                    if((reviewJsonObject.get("state")).equals("APPROVED")){
+            if (reviewJsonArray.length() != 0) {
 
-                        JSONObject userJsonObject= (JSONObject)reviewJsonObject.get("user");
-                        String approvedReviwer= (String)userJsonObject.get("login");
+                for (int i = 0; i < reviewJsonArray.length(); i++) {
+                    JSONObject reviewJsonObject = (JSONObject) reviewJsonArray.get(i);
+                    if ((reviewJsonObject.get("state")).equals("APPROVED")) {
+
+                        JSONObject userJsonObject = (JSONObject) reviewJsonObject.get("user");
+                        String approvedReviwer = (String) userJsonObject.get("login");
                         approvedReviewers.add(approvedReviwer);         // adding the approved user to the Set
 
-                    }
-                    else if((reviewJsonObject.get("state")).equals("COMMENTED")){
-                        JSONObject userJsonObject= (JSONObject)reviewJsonObject.get("user");
-                        String commentedReviwer= (String)userJsonObject.get("login");
+                    } else if ((reviewJsonObject.get("state")).equals("COMMENTED")) {
+                        JSONObject userJsonObject = (JSONObject) reviewJsonObject.get("user");
+                        String commentedReviwer = (String) userJsonObject.get("login");
                         commentedReviewers.add(commentedReviwer);        // adding the commented user to the Set
 
                     }
 
 
-
-
                 }
-            }
-            else{
-                System.out.println("There are no records of reviews for pull request: "+prNumber+" on "+productLocation+" repository");
+            } else {
+                System.out.println("There are no records of reviews for pull request: " + prNumber + " on " + productLocation + " repository");
             }
 
-
-        } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (ParseException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
 
 
 
@@ -259,13 +231,11 @@ public class Reviewers extends BlameCommit {
     /**
      * Print the list of reviewers
      */
-    public void printReviewUsers(){
-        System.out.println("Reviewed and approved users of the bug lines: "+ approvedReviewers);
-        System.out.println("Reviewed and commented users on bug lines: "+commentedReviewers);
+    public void printReviewUsers() {
+        System.out.println("Reviewed and approved users of the bug lines: " + approvedReviewers);
+        System.out.println("Reviewed and commented users on bug lines: " + commentedReviewers);
 
     }
-
-
 
 
 }
