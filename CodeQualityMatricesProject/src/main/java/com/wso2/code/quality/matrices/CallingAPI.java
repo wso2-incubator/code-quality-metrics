@@ -33,6 +33,7 @@ import java.util.Scanner;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.json.JSONTokener;
@@ -97,18 +98,14 @@ public class CallingAPI {
     /**
      * for setting the internal PMT API URL
      */
-    public String[] setData() throws IOException {
-
-        System.out.println("\nEnter the patch id");
-
-        setPatchId(user_input.next());
-
-        setURL("http://umt.private.wso2.com:9765/codequalitymatricesapi/1.0.0//properties?path=/_system/governance/patchs/" + getPatchId());
-        // as this return a JSONArray
-        JSONArray jsonArray = (JSONArray) callingTheAPI(urlForObtainingCommitHashes, jsonOutPutFileOfCommits, true, false, false);
-        String[] commitsInTheGivenPatch = getThePublicGitCommitId(jsonArray);
-        return commitsInTheGivenPatch;
-    }
+//    public String[] setData() throws IOException {
+//
+//
+//        // as this return a JSONArray
+//        JSONArray jsonArray = (JSONArray) callingTheAPI(urlForObtainingCommitHashes, jsonOutPutFileOfCommits, true, false, false);
+//     //   String[] commitsInTheGivenPatch = getThePublicGitCommitId(jsonArray);
+//        return commitsInTheGivenPatch;
+//    }
 
 
     /**
@@ -116,39 +113,40 @@ public class CallingAPI {
      *
      * @param URL                 url of the REST API
      * @param file                location to save the output
-     * @param requireToken
+     * @param token
      * @param requireCommitHeader
      * @param requireReviewHeader
      * @throws IOException
      */
 
-    public Object callingTheAPI(String URL, String file, boolean requireToken, boolean requireCommitHeader, boolean requireReviewHeader) throws IOException {
+    public Object callingTheAPI(String URL, String file, String token, boolean requireCommitHeader, boolean requireReviewHeader) throws IOException {
 
         BufferedReader bufferedReader = null;
         CloseableHttpClient httpclient = null;
         CloseableHttpResponse httpResponse = null;
-        BufferedWriter bufferedWriter = null;
         Object returnedObject = null;
 
         try {
             httpclient = HttpClients.createDefault();
             HttpGet httpGet = new HttpGet(URL);
 
-            if (requireToken == true) {
+            if (token != null) {
 
-                httpGet.addHeader("Authorization", "Bearer " + getToken());        // passing the token for the API call
+                httpGet.addHeader("Authorization", "Bearer " + token);        // passing the token for the API call
             }
 
             //as the accept header is needed for the review API since it is still in preview mode   
-            if (requireReviewHeader == true) {
+            if (requireReviewHeader) {
                 httpGet.addHeader("Accept", "application/vnd.github.black-cat-preview+json");
 
             }
 
             //as the accept header is needed for accessing commit search API which is still in preview mode
-            if (requireCommitHeader == true) {
+            if (requireCommitHeader) {
                 httpGet.addHeader("Accept", "application/vnd.github.cloak-preview");
             }
+
+
 
             httpResponse = httpclient.execute(httpGet);
             int responseCode = httpResponse.getStatusLine().getStatusCode();     // to get the response code
@@ -248,9 +246,7 @@ public class CallingAPI {
             // TODO Auto-generated catch block
             e.printStackTrace();
         } finally {
-            if (bufferedWriter != null) {
-                bufferedWriter.close();
-            }
+
 
             if (bufferedReader != null) {
                 bufferedReader.close();
@@ -283,52 +279,6 @@ public class CallingAPI {
 
     }
 
-
-    /**
-     * getting the commit IDs from the above saved file
-     */
-    public String[] getThePublicGitCommitId(JSONArray jsonArray) {
-
-
-        for (int i = 0; i < jsonArray.length(); i++) {
-            JSONObject jsonObject = (JSONObject) jsonArray.get(i);
-
-            String tempName = (String) jsonObject.get("name");
-
-            if (tempName.equals("patchInformation_svnRevisionpublic")) {
-                JSONArray tempCommitsJSONArray = (JSONArray) jsonObject.get("value");
-
-                //initializing the patchInformation_svnRevisionpublic array
-
-                patchInformation_svnRevisionpublic = new String[tempCommitsJSONArray.length()];
-
-                for (int j = 0; j < tempCommitsJSONArray.length(); j++) {
-
-
-                    patchInformation_svnRevisionpublic[j] = ((String) tempCommitsJSONArray.get(j)).trim();     // for ommiting the white spaces at the begingin and end of the commits
-
-
-                }
-
-                System.out.println("The commit Ids are");
-
-
-                //            for printing all the commits ID associated with a patch
-                for (String tmp : patchInformation_svnRevisionpublic) {
-                    System.out.println(tmp);
-                }
-                System.out.println();
-
-
-                break;
-            }
-
-
-        }
-        return patchInformation_svnRevisionpublic;
-
-
-    }
 
 }
 
