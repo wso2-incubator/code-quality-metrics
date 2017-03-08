@@ -43,7 +43,7 @@ public class RestApiCaller {
      * @throws IOException
      */
 
-    public Object callingTheAPI(String URL, String token, boolean requireCommitHeader, boolean requireReviewHeader) throws IOException {
+    public Object callingTheAPI(String URL, String token, boolean requireCommitHeader, boolean requireReviewHeader) {
 
         BufferedReader bufferedReader = null;
         CloseableHttpClient httpclient = null;
@@ -80,7 +80,7 @@ public class RestApiCaller {
                 case 200:
                     //success
 
-                    bufferedReader = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent(),"UTF-8"));
+                    bufferedReader = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent(), "UTF-8"));
 
                     StringBuilder stringBuilder = new StringBuilder();
                     String line;
@@ -157,14 +157,26 @@ public class RestApiCaller {
         } finally {
 
             if (bufferedReader != null) {
-                bufferedReader.close();
+                try {
+                    bufferedReader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
 
             if (httpResponse != null) {
-                httpResponse.close();
+                try {
+                    httpResponse.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
             if (httpclient != null) {
-                httpclient.close();
+                try {
+                    httpclient.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
 
         }

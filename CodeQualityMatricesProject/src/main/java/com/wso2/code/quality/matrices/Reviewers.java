@@ -91,15 +91,12 @@ public class Reviewers extends BlameCommit {
             setLocationOfSavingSearchApiOutputs(commitHashForFindingReviewers);
 
             // calling the github search API
-            try {
+
                 JSONObject rootJsonObject = (JSONObject) callingTheAPI(getSearchPullReqeustAPI(),githubToken, false, true);
                 // reading thus saved json file
                 savingPrNumberAndRepoName(rootJsonObject);
 
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
+
 
 
         }
@@ -168,15 +165,12 @@ public class Reviewers extends BlameCommit {
                 String locationForSavingOutputFile = "/ReviewApiOutputs/" + productLocation + "/ReviewFor" + prNumber + ".json";
                 setPullRequestReviewAPIUrl(productLocation, prNumber);
 
-                try {
+
 
                     JSONArray rootJsonArray = (JSONArray) callingTheAPI(getPullRequestReviewAPIUrl(), githubToken, false, true);
                     // for reading the output JSON from above and adding the reviewers to the Set
                     readingTheReviewOutJSON(rootJsonArray, productLocation, prNumber);
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
+
 
             }
 

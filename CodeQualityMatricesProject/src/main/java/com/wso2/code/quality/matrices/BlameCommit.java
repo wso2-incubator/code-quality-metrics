@@ -86,7 +86,7 @@ public class BlameCommit extends RestApiCaller {
      *
      * @throws IOException
      */
-    public Set obtainingRepoNamesForCommitHashes(String gitHubToken, String[] commitsInTheGivenPatch, RestApiCaller restApiCaller) throws IOException {
+    public Set obtainingRepoNamesForCommitHashes(String gitHubToken, String[] commitsInTheGivenPatch, RestApiCaller restApiCaller) {
 
 
         for (String commitHash : commitsInTheGivenPatch) {
@@ -171,13 +171,10 @@ public class BlameCommit extends RestApiCaller {
 
         JSONObject rootJsonObject = null;
         //saving the commit details for the commit hash on the relevant repository
-        try {
+
             rootJsonObject = (JSONObject) callingTheAPI(getUrlForGetingFilesChanged(), gitHubToken, false, false);
 
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+
 
 
         //----calling savingRelaventFileNamesAndEditLineNumbers method to read the above saved json output----
@@ -259,7 +256,7 @@ public class BlameCommit extends RestApiCaller {
 
                 }
 
-                ArrayList<String> tempArrayList = new ArrayList<String>(Arrays.asList(lineChanges));
+                ArrayList<String> tempArrayList = new ArrayList<>(Arrays.asList(lineChanges));
 
                 //adding to the array list which keep track of the line ranges which are being changed to the main arrayList
                 lineRangesChanged.add(tempArrayList);
@@ -298,7 +295,7 @@ public class BlameCommit extends RestApiCaller {
             ArrayList<String> arrayListOfRelevantChangedLines = lineRangesChanged.get(index);
 
 
-            commitHashesOfTheParent = new HashSet<String>();   // for storing the parent commit hashes for all the line ranges of the relevant file
+            commitHashesOfTheParent = new HashSet<>();   // for storing the parent commit hashes for all the line ranges of the relevant file
 
             graphqlApiJsonObject.put("query", "{repository(owner:\"" + owner + "\",name:\"" + repositoryName + "\"){object(expression:\"" + commitHash + "\"){ ... on Commit{blame(path:\"" + fileName + "\"){ranges{startingLine endingLine age commit{history(first: 2) { edges { node {  message url } } } author { name email } } } } } } } }");
 
