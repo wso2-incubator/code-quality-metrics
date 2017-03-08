@@ -361,7 +361,7 @@ public class BlameCommit extends RestApiCaller {
 
         BufferedReader bufferedReader = null;
         try {
-            bufferedReader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+            bufferedReader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(),"UTF-8"));
             String line;
             StringBuilder stringBuilder = new StringBuilder();
             while ((line = bufferedReader.readLine()) != null) {

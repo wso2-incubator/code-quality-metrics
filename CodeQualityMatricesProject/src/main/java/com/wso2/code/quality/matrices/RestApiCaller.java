@@ -80,7 +80,7 @@ public class RestApiCaller {
                 case 200:
                     //success
 
-                    bufferedReader = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent()));
+                    bufferedReader = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent(),"UTF-8"));
 
                     StringBuilder stringBuilder = new StringBuilder();
                     String line;

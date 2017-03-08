@@ -159,7 +159,7 @@ public class Reviewers extends BlameCommit {
             String productLocation = (String) m.getKey();
 
             @SuppressWarnings("unchecked")
-            Set<Long> prNumbers = (Set<Long>) m.getValue();
+            Set<Integer> prNumbers = (Set<Integer>) m.getValue();
 
             Iterator prNumberIterator = prNumbers.iterator();
             while (prNumberIterator.hasNext()) {

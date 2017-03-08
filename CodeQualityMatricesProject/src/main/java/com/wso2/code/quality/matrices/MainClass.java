@@ -6,7 +6,7 @@ import java.util.Set;
 
 public class MainClass {
     public static void main(String[] args) throws Exception {
-        Scanner user_input = new Scanner(System.in);
+        Scanner user_input = new Scanner(System.in,"UTF-8");
         System.out.println("Enter PMT Token");
         String pmtToken = user_input.next();
 
