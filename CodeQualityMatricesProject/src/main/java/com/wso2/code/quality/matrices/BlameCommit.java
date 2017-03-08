@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -94,7 +95,7 @@ public class BlameCommit extends RestApiCaller {
 
 
             //calling the API calling method
-            JSONObject jsonObject = (JSONObject) restApiCaller.callingTheAPI(getUrlForSearchingCommits(),gitHubToken, true, false);
+            JSONObject jsonObject = (JSONObject) restApiCaller.callingTheAPI(getUrlForSearchingCommits(), gitHubToken, true, false);
             saveRepoNamesInAnArray(jsonObject, commitHash, gitHubToken);
 
         }
@@ -136,7 +137,7 @@ public class BlameCommit extends RestApiCaller {
                 //clearing all the data in the current fileNames and lineRangesChanged arraylists for each repository
                 fileNames.clear();
                 lineRangesChanged.clear();
-                //                authorNames.clear();
+                //authorNames.clear();
 
 
                 callingToGetFilesChanged(repoLocation[i], commitHash, gitHubToken);
@@ -171,7 +172,7 @@ public class BlameCommit extends RestApiCaller {
         JSONObject rootJsonObject = null;
         //saving the commit details for the commit hash on the relevant repository
         try {
-            rootJsonObject = (JSONObject) callingTheAPI(getUrlForGetingFilesChanged(),gitHubToken, false, false);
+            rootJsonObject = (JSONObject) callingTheAPI(getUrlForGetingFilesChanged(), gitHubToken, false, false);
 
         } catch (IOException e) {
             // TODO Auto-generated catch block
@@ -262,17 +263,13 @@ public class BlameCommit extends RestApiCaller {
 
                 //adding to the array list which keep track of the line ranges which are being changed to the main arrayList
                 lineRangesChanged.add(tempArrayList);
-
-
             }
 
             System.out.println("done saving file names and their relevant modification line ranges");
             System.out.println(fileNames);
             System.out.println(lineRangesChanged + "\n");
 
-
         }
-
 
     }
 
@@ -323,9 +320,7 @@ public class BlameCommit extends RestApiCaller {
 
             iteratingOverForFindingAuthors(owner, repositoryName, fileName, repoLocation, arrayListOfRelevantChangedLines, gitHubToken);
 
-
         }
-
 
     }
 
@@ -344,21 +339,15 @@ public class BlameCommit extends RestApiCaller {
 
         CloseableHttpClient client = null;
         CloseableHttpResponse response = null;
-
-
         client = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost("https://api.github.com/graphql");
-
         httpPost.addHeader("Authorization", "Bearer " + gitHubToken);
         httpPost.addHeader("Accept", "application/json");
         Object returnedObject = null;
 
         try {
-
             //                StringEntity entity= new StringEntity("{\"query\":\"query "+graphqlQuery+"\"}");
             StringEntity entity = new StringEntity(queryObject.toString());
-
-
             httpPost.setEntity(entity);
             response = client.execute(httpPost);
 
@@ -369,7 +358,6 @@ public class BlameCommit extends RestApiCaller {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
 
         BufferedReader bufferedReader = null;
         try {
@@ -405,8 +393,6 @@ public class BlameCommit extends RestApiCaller {
         }
 
         return returnedObject;
-
-
     }
 
 
@@ -419,10 +405,7 @@ public class BlameCommit extends RestApiCaller {
      */
     public void readingTheBlameReceivedForAFile(JSONObject rootJsonObject, ArrayList<String> arrayListOfRelevantChangedLines, boolean gettingPr) {
 
-
         //running a iterator for fileName arrayList to get the location of the above saved file
-
-
         JSONObject dataJSONObject = (JSONObject) rootJsonObject.get("data");
         JSONObject repositoryJSONObect = (JSONObject) dataJSONObject.get("repository");
         JSONObject objectJSONObject = (JSONObject) repositoryJSONObect.get("object");
@@ -430,16 +413,12 @@ public class BlameCommit extends RestApiCaller {
         JSONArray rangeJSONArray = (JSONArray) blameJSONObject.get("ranges");
 
         // --------------------getting the starting line no of the range of lines that are modified from the patch-----------------
-
-
         Iterator arrayListOfRelevantChangedLinesIterator = arrayListOfRelevantChangedLines.iterator();     // iterator for the array list inside the root arraylist
-
 
         while (arrayListOfRelevantChangedLinesIterator.hasNext()) {
 
             int startingLineNo;
             int endLineNo;
-
 
             String lineRanges = (String) arrayListOfRelevantChangedLinesIterator.next();
 

@@ -1,8 +1,6 @@
 package com.wso2.code.quality.matrices;
 
-
 import org.json.JSONArray;
-
 import java.util.Scanner;
 import java.util.Set;
 
