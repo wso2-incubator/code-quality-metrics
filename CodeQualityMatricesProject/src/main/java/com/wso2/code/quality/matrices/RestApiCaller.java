@@ -32,15 +32,18 @@ import org.json.JSONTokener;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
+/**
+ * This class is used to call the REST API of both WSO2 PMT and github.com
+ */
+
 public class RestApiCaller {
     /**
      * calling the relevant API and saving the output to a file
      *
-     * @param URL                 url of the REST API
-     * @param token
-     * @param requireCommitHeader
-     * @param requireReviewHeader
-     * @throws IOException
+     * @param URL   url of the REST API to be called
+     * @param token either the WSO2 PMT access token or giihub.com access token
+     * @param requireCommitHeader   should be true for accessing the github commit search API and false otherwise
+     * @param requireReviewHeader   should be true for accessing the github review API or false otherwise
      */
 
     public Object callingTheAPI(String URL, String token, boolean requireCommitHeader, boolean requireReviewHeader) {
@@ -62,7 +65,6 @@ public class RestApiCaller {
             //as the accept header is needed for the review API since it is still in preview mode   
             if (requireReviewHeader) {
                 httpGet.addHeader("Accept", "application/vnd.github.black-cat-preview+json");
-
             }
 
             //as the accept header is needed for accessing commit search API which is still in preview mode
@@ -70,25 +72,18 @@ public class RestApiCaller {
                 httpGet.addHeader("Accept", "application/vnd.github.cloak-preview");
             }
 
-
             httpResponse = httpclient.execute(httpGet);
             int responseCode = httpResponse.getStatusLine().getStatusCode();     // to get the response code
 
-
             switch (responseCode) {
-
                 case 200:
                     //success
-
                     bufferedReader = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent(), "UTF-8"));
-
                     StringBuilder stringBuilder = new StringBuilder();
                     String line;
                     while ((line = bufferedReader.readLine()) != null) {
                         stringBuilder.append(line);
-
                     }
-
 
                     // creating a JSON object from the response
                     String JSONText = stringBuilder.toString();
@@ -101,7 +96,6 @@ public class RestApiCaller {
                         JSONArray jsonArray = (JSONArray) json;
                         returnedObject = jsonArray;
                     }
-
                     break;
                 case 401:
                     // to handle Response code 401: Unauthorized
@@ -115,7 +109,6 @@ public class RestApiCaller {
                         e.printStackTrace();
                     }
                     break;
-
                 case 403:
                     // to handle invalid credentials
                     System.err.println("Response Code:403 Invalid Credentials, insert a correct token");
@@ -128,9 +121,7 @@ public class RestApiCaller {
                         e.printStackTrace();
                     }
 
-
                     break;
-
                 case 404:
                     // to handle invalid patch
                     System.err.println("Reponse Code 404: Patch not found, enter a valid patch");
@@ -143,9 +134,7 @@ public class RestApiCaller {
                     }
 
                     break;
-
                 default:
-
                     returnedObject = null;
             }
         } catch (ClientProtocolException e) {
@@ -178,13 +167,12 @@ public class RestApiCaller {
                     e.printStackTrace();
                 }
             }
-
         }
         return returnedObject;
     }
 
     /**
-     * running the programm again
+     * this method calls the main method again when incorrect inputs are supplied
      */
     public void runningTheAppAgain() {
         try {
