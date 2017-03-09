@@ -19,9 +19,6 @@
 
 package com.wso2.code.quality.matrices;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -31,14 +28,15 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.json.simple.parser.ParseException;
+
+/**
+ * This class is used to find the revierwers of the buggy lines of code
+ */
 
 public class Reviewers extends BlameCommit {
 
     String searchPullReqeustAPIUrl;
-    String locationOfSavingSearchApiOutputs;
     String pullRequestReviewAPIUrl;
-
     Set<String> approvedReviewers = new HashSet<String>();      // to store the reviewed and approved users of the pull requests
     Set<String> commentedReviewers = new HashSet<String>();     // to store the reviewed and commented users of the pull requests
 
@@ -46,149 +44,103 @@ public class Reviewers extends BlameCommit {
         return searchPullReqeustAPIUrl;
     }
 
+    /**
+     * Sets the URL for Github Search API
+     *
+     * @param commitHashToBeSearched commit hash to be searched used for finding the Pull requests
+     */
 
     public void setSearchPullReqeustAPI(String commitHashToBeSearched) {
-
-
         this.searchPullReqeustAPIUrl = "https://api.github.com/search/issues?q=" + commitHashToBeSearched;
-    }
-
-    public String getLocationOfSavingSearchApiOutputs() {
-        return locationOfSavingSearchApiOutputs;
-    }
-
-
-    public void setLocationOfSavingSearchApiOutputs(String commitHashToBeSearched) {
-
-        this.locationOfSavingSearchApiOutputs = "/searchApiOutputs/" + commitHashToBeSearched + ".json";
     }
 
     public String getPullRequestReviewAPIUrl() {
         return pullRequestReviewAPIUrl;
     }
 
-
     public void setPullRequestReviewAPIUrl(String repoLocation, int pullRequestNumber) {
         this.pullRequestReviewAPIUrl = "https://api.github.com/repos/" + repoLocation + "/pulls/" + pullRequestNumber + "/reviews";
     }
 
-
     // map for storing the pull requests numbers against their repository
     Map<String, Set<Integer>> mapContainingPRNoAgainstRepoName = new HashMap<String, Set<Integer>>();
 
-
     /**
-     * for finding the reviewers of each commit and storing them in array list
+     * for finding the reviewers of each commit and storing them in a Set
+     *
+     * @param commitHashObtainedForPRReview commit hash Set for finding the pull requests
+     * @param githubToken                   github token for accessing github REST API
      */
     public void findingReviewers(Set<String> commitHashObtainedForPRReview, String githubToken) {
-
         Iterator commitHashObtainedForPRReviewIterator = commitHashObtainedForPRReview.iterator();
-
         while (commitHashObtainedForPRReviewIterator.hasNext()) {
-
             String commitHashForFindingReviewers = (String) commitHashObtainedForPRReviewIterator.next();
             setSearchPullReqeustAPI(commitHashForFindingReviewers);
-            setLocationOfSavingSearchApiOutputs(commitHashForFindingReviewers);
-
             // calling the github search API
-
-                JSONObject rootJsonObject = (JSONObject) callingTheAPI(getSearchPullReqeustAPI(),githubToken, false, true);
-                // reading thus saved json file
-                savingPrNumberAndRepoName(rootJsonObject);
-
-
-
-
+            JSONObject rootJsonObject = (JSONObject) callingTheAPI(getSearchPullReqeustAPI(), githubToken, false, true);
+            // reading thus saved json file
+            savingPrNumberAndRepoName(rootJsonObject);
         }
         System.out.println("Done Mapping" + mapContainingPRNoAgainstRepoName);
         savingReviewersToList(githubToken);
-
         // printing the list of reviewers of pull requests
         printReviewUsers();
-
-
     }
 
-
     /**
-     * reading the search API output and saving the PR number with the repo name in a map
+     * reads the search API output and save the pull request number with the repo name in a map
      *
-     * @param rootJsonObject
+     * @param rootJsonObject JSONObject received from github search API
      */
-
     public void savingPrNumberAndRepoName(JSONObject rootJsonObject) {
-
-
         JSONArray itemsJsonArray = (JSONArray) rootJsonObject.get("items");
 
         for (int i = 0; i < itemsJsonArray.length(); i++) {
             JSONObject prJsonObject = (JSONObject) itemsJsonArray.get(i);
             // filtering only the closed repositories
             if (((String) prJsonObject.get("state")).equals("closed")) {
-
                 String repositoryUrl = (String) prJsonObject.get("repository_url");
                 String repositoryLocation = StringUtils.substringAfter(repositoryUrl, "https://api.github.com/repos/");
                 if (repositoryLocation.contains("wso2/")) {
                     // to filter out only the repositories belongs to wso2
-
                     int pullRequetNumber = (int) prJsonObject.get("number");
-
                     mapContainingPRNoAgainstRepoName.putIfAbsent(repositoryLocation, new HashSet<Integer>()); // put the repo name key only if it does not exists in the map
-
                     mapContainingPRNoAgainstRepoName.get(repositoryLocation).add(pullRequetNumber);  // since SET is there we do not need to check for availability of the key in the map
-
                 }
-
             }
-
         }
-
-
     }
 
     /**
-     * Saving the reviewers of the pull requests to a list
+     * Calling the github review API for a selected pull request on its relevant product
+     *
+     * @param githubToken github token for accessing github REST API
      */
     public void savingReviewersToList(String githubToken) {
 
         for (Map.Entry m : mapContainingPRNoAgainstRepoName.entrySet()) {
-
             String productLocation = (String) m.getKey();
-
             @SuppressWarnings("unchecked")
             Set<Integer> prNumbers = (Set<Integer>) m.getValue();
-
             Iterator prNumberIterator = prNumbers.iterator();
             while (prNumberIterator.hasNext()) {
                 int prNumber = (int) prNumberIterator.next();
-
-                String locationForSavingOutputFile = "/ReviewApiOutputs/" + productLocation + "/ReviewFor" + prNumber + ".json";
                 setPullRequestReviewAPIUrl(productLocation, prNumber);
-
-
-
-                    JSONArray rootJsonArray = (JSONArray) callingTheAPI(getPullRequestReviewAPIUrl(), githubToken, false, true);
-                    // for reading the output JSON from above and adding the reviewers to the Set
-                    readingTheReviewOutJSON(rootJsonArray, productLocation, prNumber);
-
-
+                JSONArray rootJsonArray = (JSONArray) callingTheAPI(getPullRequestReviewAPIUrl(), githubToken, false, true);
+                // for reading the output JSON from above and adding the reviewers to the Set
+                readingTheReviewOutJSON(rootJsonArray, productLocation, prNumber);
             }
-
-
         }
-
-
     }
 
     /**
-     * Reading the output received from the review API
+     * Reading the output received from the review API and saving the relevant reviewers and commented users to a Set
      *
-     * @param reviewJsonArray
-     * @param productLocation
-     * @param prNumber
+     * @param reviewJsonArray JSON response from the github Review API
+     * @param productLocation Product Location for printing the error message when there are no reviewers and a commented users
+     * @param prNumber        relevant PR number for finding the reviewers and commenters
      */
     public void readingTheReviewOutJSON(JSONArray reviewJsonArray, String productLocation, int prNumber) {
-
 
         if (reviewJsonArray.length() != 0) {
 
@@ -204,26 +156,18 @@ public class Reviewers extends BlameCommit {
                     JSONObject userJsonObject = (JSONObject) reviewJsonObject.get("user");
                     String commentedReviwer = (String) userJsonObject.get("login");
                     commentedReviewers.add(commentedReviwer);        // adding the commented user to the Set
-
                 }
-
-
             }
         } else {
             System.out.println("There are no records of reviews for pull request: " + prNumber + " on " + productLocation + " repository");
         }
-
-
     }
 
     /**
-     * Print the list of reviewers
+     * Print the list of reviewers and commented users on the pull requests which introduce bugs to the code base
      */
     public void printReviewUsers() {
         System.out.println("Reviewed and approved users of the bug lines: " + approvedReviewers);
         System.out.println("Reviewed and commented users on bug lines: " + commentedReviewers);
-
     }
-
-
 }
