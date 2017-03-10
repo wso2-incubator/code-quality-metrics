@@ -18,9 +18,11 @@
 
 package com.wso2.code.quality.matrices;
 
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 
 import java.util.Set;
+
 
 /**
  * This is the class having the main method of this application
@@ -28,7 +30,10 @@ import java.util.Set;
  * should be passed as command line arguments when running the application
  */
 public class MainClass {
+    private final static Logger logger = Logger.getLogger(MainClass.class.getName());
+
     public static void main(String[] args) {
+        logger.info(" Main method got executed");
 
         String pmtToken = args[0];
         String patchId = args[1];
@@ -38,13 +43,19 @@ public class MainClass {
         RestApiCaller restApiCaller = new RestApiCaller();
         JSONArray jsonArray = (JSONArray) restApiCaller.callingTheAPI(pmtUrl, pmtToken, false, false);
 
+        logger.info("JSON response is received successfully from WSO2 PMT for the given patch " + args[1]);
+
         Pmt pmt = new Pmt();
         String[] commitsInTheGivenPatch = pmt.getThePublicGitCommitId(jsonArray);
+
+        logger.info("Commits received from WSO2 PMT are saved in an array successfully");
 
         String gitHubToken = args[2];
 
         BlameCommit blameCommit = new BlameCommit();
         Set<String> commitHashObtainedForPRReview = blameCommit.obtainingRepoNamesForCommitHashes(gitHubToken, commitsInTheGivenPatch, restApiCaller);
+
+        logger.info("Author commits that introduce bug lines of code to the repository are saved in commitHashObtainedForPRReview SET successfully");
 
         Reviewers reviewers = new Reviewers();
         reviewers.findingReviewers(commitHashObtainedForPRReview, gitHubToken);
