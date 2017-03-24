@@ -32,8 +32,7 @@ public class MainClass {
     private final static Logger logger = Logger.getLogger(MainClass.class);
 
     public static void main(String[] args) {
-        logger.info(" Main method got executed");
-        if (args.length==3) {
+        if (args.length == 3) {
 
             String pmtToken = args[0];
             String patchId = args[1];
@@ -69,8 +68,7 @@ public class MainClass {
             if (commitHashObtainedForPRReview != null) {
                 reviewer.findReviewers(commitHashObtainedForPRReview, gitHubToken, restApiCaller);
             }
-        }
-        else{
+        } else {
             logger.error("at least one of the command line arguments are null.");
             System.exit(4);
         }
